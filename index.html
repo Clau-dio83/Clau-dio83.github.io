@@ -52,10 +52,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 20; /* Sits above text, below CRT effects */
+            z-index: 20; 
             display: none;
             opacity: 0;
-            transition: opacity 1s ease; /* Smooth fade in */
+            transition: opacity 1s ease; 
         }
 
         /* The curved screen bulge/vignette effect */
@@ -167,7 +167,6 @@
         }
 
         function drawMatrix() {
-            // Translucent black background to create the fade effect on old characters
             ctx.fillStyle = "rgba(5, 5, 5, 0.05)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
@@ -178,7 +177,6 @@
                 const text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
                 ctx.fillText(text, i * matrixFontSize, drops[i] * matrixFontSize);
 
-                // Reset drop to top randomly to create the staggered rain effect
                 if (drops[i] * matrixFontSize > canvas.height && Math.random() > 0.975) {
                     drops[i] = 0;
                 }
@@ -190,7 +188,6 @@
         function startMatrixEffect() {
             initMatrix();
             canvas.style.display = 'block';
-            // Slight delay before fading in
             setTimeout(() => { canvas.style.opacity = '1'; }, 50);
             drawMatrix();
         }
@@ -214,8 +211,8 @@ SYSTEM INITIALIZED. VER: 1.0
             " " 
         ];
 
-        // This variable can change based on what the user types
         let currentPromptText = "Do you want to read Claudio's information available on file? (yes/no)";
+        let noCount = 0; // Tracks how many times the user says no
         
         const typingSpeed = 30; 
         const asciiSpeed = 10;  
@@ -257,7 +254,6 @@ SYSTEM INITIALIZED. VER: 1.0
             await typeText(currentPromptText);
         };
 
-        // Window resize handler for Matrix canvas
         window.addEventListener('resize', () => {
             if(canvas.style.display === 'block') initMatrix();
         });
@@ -274,28 +270,43 @@ SYSTEM INITIALIZED. VER: 1.0
                 scrollToBottom();
 
                 if (command === 'yes' || command === 'y') {
-                    // Start the Matrix sequence
                     await typeText("Entering the matrix...");
-                    inputContainer.style.display = 'none'; // Hide input permanently
+                    inputContainer.style.display = 'none'; 
                     
                     setTimeout(() => {
                         startMatrixEffect();
-                        // Wait 3 seconds to show off the rain, then redirect
                         setTimeout(() => {
                             window.location.href = "cv.html"; 
                         }, 3000);
                     }, 500);
 
                 } else if (command === 'no' || command === 'n') {
-                    // The cheeky "no" response
+                    noCount++;
                     await typeText("Command Not recognized.");
-                    currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
+                    
+                    if (noCount === 1) {
+                        currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
+                    } else {
+                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file.";
+                    }
+
                     setTimeout(() => {
                         typeText(currentPromptText);
                     }, 400);
 
+                } else if (command === 'blog' && noCount >= 2) {
+                    // Secret blog command unlocks only after 2 'no's
+                    await typeText("Accessing hidden blog directory. Entering the matrix...");
+                    inputContainer.style.display = 'none'; 
+                    
+                    setTimeout(() => {
+                        startMatrixEffect();
+                        setTimeout(() => {
+                            window.location.href = "http://www.claudiogiordani.com/blog"; 
+                        }, 3000);
+                    }, 500);
+
                 } else {
-                    // Standard error response
                     await typeText("Command Not recognized.");
                     setTimeout(() => {
                         typeText(currentPromptText);
