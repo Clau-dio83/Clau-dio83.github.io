@@ -45,6 +45,19 @@
             text-shadow: 0 0 5px #33ff00, 0 0 10px #1a8000;
         }
 
+        /* Matrix Canvas Layer */
+        #matrix-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20; /* Sits above text, below CRT effects */
+            display: none;
+            opacity: 0;
+            transition: opacity 1s ease; /* Smooth fade in */
+        }
+
         /* The curved screen bulge/vignette effect */
         .vignette {
             position: absolute;
@@ -116,6 +129,7 @@
     
     <div class="monitor-frame">
         <div class="screen">
+            <canvas id="matrix-canvas"></canvas>
             <div class="vignette"></div>
             <div class="crt-effect"></div>
             
@@ -135,6 +149,51 @@
         const historyDiv = document.getElementById('history');
         const inputContainer = document.getElementById('input-container');
         const asciiContainer = document.getElementById('ascii-header');
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Matrix Rain Setup
+        const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*".split("");
+        const matrixFontSize = 16;
+        let drops = [];
+
+        function initMatrix() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            const columns = canvas.width / matrixFontSize;
+            for (let x = 0; x < columns; x++) {
+                drops[x] = 1;
+            }
+        }
+
+        function drawMatrix() {
+            // Translucent black background to create the fade effect on old characters
+            ctx.fillStyle = "rgba(5, 5, 5, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "#33ff00"; 
+            ctx.font = matrixFontSize + "px 'Courier New'";
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+                ctx.fillText(text, i * matrixFontSize, drops[i] * matrixFontSize);
+
+                // Reset drop to top randomly to create the staggered rain effect
+                if (drops[i] * matrixFontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+            requestAnimationFrame(drawMatrix);
+        }
+
+        function startMatrixEffect() {
+            initMatrix();
+            canvas.style.display = 'block';
+            // Slight delay before fading in
+            setTimeout(() => { canvas.style.opacity = '1'; }, 50);
+            drawMatrix();
+        }
 
         // The CG ASCII Art
         const asciiArt = `
@@ -147,22 +206,20 @@
 SYSTEM INITIALIZED. VER: 1.0
 ----------------------------`;
 
-        // The witty intro sequence
         const introSequence = [
             "ESTABLISHING SECURE CONNECTION...",
             "BYPASSING SECURITY PROTOCOLS... (JUST KIDDING, IT'S PUBLIC)",
             "WARNING: EXTREME LEVELS OF SKILL DETECTED IN TARGET DIRECTORY.",
             "DECRYPTING HUMOR MODULE... SUCCESS.",
-            " " // Blank line for spacing
+            " " 
         ];
 
-        const questionText = "Do you want to read Claudio's information available on file? (yes/no)";
+        // This variable can change based on what the user types
+        let currentPromptText = "Do you want to read Claudio's information available on file? (yes/no)";
         
-        // Timing constants
-        const typingSpeed = 30; // ms per character
-        const asciiSpeed = 10;  // ms per character for the fast ASCII draw
+        const typingSpeed = 30; 
+        const asciiSpeed = 10;  
 
-        // Types out the ASCII header quickly
         async function drawAscii() {
             for (let i = 0; i < asciiArt.length; i++) {
                 asciiContainer.textContent += asciiArt.charAt(i);
@@ -171,7 +228,6 @@ SYSTEM INITIALIZED. VER: 1.0
             await new Promise(resolve => setTimeout(resolve, 500));
         }
 
-        // Standard typing function
         async function typeText(text) {
             inputContainer.style.display = 'none'; 
             const p = document.createElement('p');
@@ -192,46 +248,62 @@ SYSTEM INITIALIZED. VER: 1.0
             container.scrollTop = container.scrollHeight;
         }
 
-        // Boot sequence
         window.onload = async () => {
             await drawAscii();
-            
-            // Loop through the witty intro lines
             for (const line of introSequence) {
                 await typeText(line);
                 await new Promise(resolve => setTimeout(resolve, 400));
             }
-
-            await typeText(questionText);
+            await typeText(currentPromptText);
         };
 
-        // Command handling
+        // Window resize handler for Matrix canvas
+        window.addEventListener('resize', () => {
+            if(canvas.style.display === 'block') initMatrix();
+        });
+
         inputField.addEventListener('keydown', async function(event) {
             if (event.key === 'Enter' && inputContainer.style.display !== 'none') {
                 const command = inputField.value.trim().toLowerCase();
                 
                 const userEcho = document.createElement('p');
-                userEcho.textContent = "> " + inputField.value; // FIXED SYNTAX HERE
+                userEcho.textContent = "> " + inputField.value;
                 historyDiv.appendChild(userEcho);
                 
                 inputField.value = ''; 
                 scrollToBottom();
 
                 if (command === 'yes' || command === 'y') {
-                    await typeText("Accessing file... Redirecting.");
+                    // Start the Matrix sequence
+                    await typeText("Entering the matrix...");
+                    inputContainer.style.display = 'none'; // Hide input permanently
+                    
                     setTimeout(() => {
-                        window.location.href = "cv.html"; 
-                    }, 800);
+                        startMatrixEffect();
+                        // Wait 3 seconds to show off the rain, then redirect
+                        setTimeout(() => {
+                            window.location.href = "cv.html"; 
+                        }, 3000);
+                    }, 500);
+
+                } else if (command === 'no' || command === 'n') {
+                    // The cheeky "no" response
+                    await typeText("Command Not recognized.");
+                    currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
+                    setTimeout(() => {
+                        typeText(currentPromptText);
+                    }, 400);
+
                 } else {
+                    // Standard error response
                     await typeText("Command Not recognized.");
                     setTimeout(() => {
-                        typeText(questionText);
+                        typeText(currentPromptText);
                     }, 400);
                 }
             }
         });
 
-        // Keep input focused
         document.addEventListener('click', () => {
             if (inputContainer.style.display !== 'none') {
                 inputField.focus();
