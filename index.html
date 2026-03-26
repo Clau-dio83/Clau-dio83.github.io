@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal</title>
+    <style>
+        /* Base terminal styling */
+        body {
+            background-color: #050505;
+            color: #33ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px;
+            margin: 0;
+            padding: 30px;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden;
+            text-shadow: 0 0 5px #33ff00, 0 0 10px #1a8000;
+        }
+
+        /* Simulates CRT scanlines */
+        .crt-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .terminal-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        p {
+            margin: 10px 0;
+            min-height: 20px; /* Prevents layout jumping when typing starts */
+        }
+
+        .input-line {
+            display: none; /* Hidden initially while typing */
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        /* Styles the input to look like terminal text */
+        input[type="text"] {
+            background: transparent;
+            border: none;
+            color: #33ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px;
+            outline: none;
+            width: 100%;
+            margin-left: 10px;
+            text-shadow: 0 0 5px #33ff00;
+            caret-color: #33ff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="crt-effect"></div>
+    
+    <div class="terminal-container">
+        <div id="history"></div>
+        <div class="input-line" id="input-container">
+            <span>></span>
+            <input type="text" id="command-input" autocomplete="off" spellcheck="false">
+        </div>
+    </div>
+
+    <script>
+        const inputField = document.getElementById('command-input');
+        const historyDiv = document.getElementById('history');
+        const inputContainer = document.getElementById('input-container');
+        
+        const questionText = "Do you want to read Claudio's information available on file? (yes/no)";
+        const typingSpeed = 30; // Milliseconds per character. Lower is faster.
+
+        // Reusable function to simulate typing
+        async function typeText(text) {
+            inputContainer.style.display = 'none'; // Hide input line while typing
+            const p = document.createElement('p');
+            historyDiv.appendChild(p);
+            
+            for (let i = 0; i < text.length; i++) {
+                p.textContent += text.charAt(i);
+                // Pause execution to simulate typing delay
+                await new Promise(resolve => setTimeout(resolve, typingSpeed));
+            }
+            
+            // Show input line and focus after typing finishes
+            inputContainer.style.display = 'flex';
+            inputField.focus();
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        // Initialize the first prompt on load
+        window.onload = () => {
+            typeText(questionText);
+        };
+
+        // Listen for the Enter key
+        inputField.addEventListener('keydown', async function(event) {
+            if (event.key === 'Enter' && inputContainer.style.display !== 'none') {
+                const command = inputField.value.trim().toLowerCase();
+                
+                // Echo the user's input instantly
+                const userEcho = document.createElement('p');
+                userEcho.textContent = `> ${inputField.value}`;
+                historyDiv.appendChild(userEcho);
+                
+                inputField.value = ''; // Clear input
+
+                if (command === 'yes') {
+                    await typeText("Accessing file... Redirecting.");
+                    setTimeout(() => {
+                        // Redirects to your newly renamed CV file
+                        window.location.href = "cv.html"; 
+                    }, 800);
+                } else {
+                    await typeText("Command Not recognized.");
+                    // Add a tiny delay before asking again
+                    setTimeout(() => {
+                        typeText(questionText);
+                    }, 400);
+                }
+            }
+        });
+
+        // Ensure the input always stays focused if the user clicks away
+        document.addEventListener('click', () => {
+            if (inputContainer.style.display !== 'none') {
+                inputField.focus();
+            }
+        });
+    </script>
+</body>
+</html>
