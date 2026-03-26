@@ -199,7 +199,6 @@ SYSTEM INITIALIZED. VER: 1.0
             // Loop through the witty intro lines
             for (const line of introSequence) {
                 await typeText(line);
-                // Pause slightly between each line for dramatic effect
                 await new Promise(resolve => setTimeout(resolve, 400));
             }
 
@@ -212,7 +211,7 @@ SYSTEM INITIALIZED. VER: 1.0
                 const command = inputField.value.trim().toLowerCase();
                 
                 const userEcho = document.createElement('p');
-                userEcho.textContent = \`> \${inputField.value}\`;
+                userEcho.textContent = "> " + inputField.value; // FIXED SYNTAX HERE
                 historyDiv.appendChild(userEcho);
                 
                 inputField.value = ''; 
