@@ -5,110 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claudio's Terminal</title>
     <style>
-        /* The dark room behind the monitor */
+        /* The entire page setup */
         body {
-            background-color: #0a0a0a;
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a; /* Fallback color */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
+            overflow: hidden;
             font-family: 'Courier New', Courier, monospace;
         }
 
-        /* The physical plastic monitor frame */
-        .monitor-frame {
-            background-color: #1a1a1a;
-            padding: 3vw;
-            border-radius: 30px;
-            box-shadow: 
-                0 20px 50px rgba(0,0,0,0.9), 
-                inset 0 5px 15px rgba(255,255,255,0.05),
-                inset 0 -5px 15px rgba(0,0,0,0.5);
-            width: 90vw;
-            max-width: 900px;
-            height: 80vh;
+        /* The container holding the monitor image */
+        .monitor-container {
             position: relative;
+            width: 100vw;
+            height: 100vh;
+            /* We use object-fit to ensure the image covers the screen but maintains aspect ratio */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* The glass screen */
-        .screen {
-            background-color: #050505;
-            width: 100%;
-            height: 100%;
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 30px rgba(51, 255, 0, 0.2);
-            color: #33ff00;
-            font-size: 18px;
-            text-shadow: 0 0 5px #33ff00, 0 0 10px #1a8000;
+        /* The monitor image itself */
+        .monitor-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Keeps the whole monitor visible */
+            z-index: 1;
         }
 
-        /* Matrix Canvas Layer */
-        #matrix-canvas {
+        /* The interactive terminal area, positioned over the glass */
+        .terminal-screen-area {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 20; 
-            display: none;
-            opacity: 0;
-            transition: opacity 1s ease; 
-        }
-
-        /* The curved screen bulge/vignette effect */
-        .vignette {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%);
-            pointer-events: none;
-            z-index: 101;
-        }
-
-        /* Simulates CRT scanlines */
-        .crt-effect {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 100;
-        }
-
-        .terminal-container {
-            padding: 30px;
-            position: relative;
             z-index: 10;
+            /* These percentages are roughly mapped to the glass area 
+               of the 'monitor3-6.webp' image. They might need slight tweaking 
+               depending on exact browser dimensions, but they should be very close.
+            */
+            top: 13%;     
+            left: 10%;    
+            width: 61%;   
+            height: 73%;  
+            
+            overflow: hidden;
+            border-radius: 4% / 5%; /* Slight curve for the CRT glass */
+            
+            /* Optional: Add a slight tint to blend the text with the grey glass */
+            background-color: rgba(10, 20, 10, 0.4); 
+        }
+
+        /* The container for the text itself */
+        .terminal-content {
+            padding: 2vw; /* Responsive padding */
             height: 100%;
             box-sizing: border-box;
             overflow-y: auto;
+            color: #33ff00;
+            font-size: 1.4vw; /* Responsive text size */
+            line-height: 1.3;
+            text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000;
         }
 
-        /* Hide scrollbar for maximum realism */
-        .terminal-container::-webkit-scrollbar {
+        /* Hide scrollbars for realism */
+        .terminal-content::-webkit-scrollbar { display: none; }
+        .terminal-content { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* The Matrix Effect Canvas */
+        #matrix-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2; /* Behind text, above background */
             display: none;
-        }
-        .terminal-container {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            opacity: 0;
+            transition: opacity 1s ease;
         }
 
-        pre {
-            margin: 0 0 20px 0;
-            font-family: inherit;
+        /* Scanlines specific to the text area */
+        .crt-scanlines {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 20;
+        }
+        
+        /* CRT Curvature Shadow */
+        .crt-vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.5) 100%);
+            pointer-events: none;
+            z-index: 21;
         }
 
-        p {
-            margin: 10px 0;
-            min-height: 20px; 
-        }
-
-        .input-line {
-            display: none;
-            align-items: center;
-            margin-top: 10px;
+        pre { margin: 0 0 1vw 0; font-family: inherit; white-space: pre-wrap; word-wrap: break-word;}
+        p { margin: 0.5vw 0; min-height: 1.2em; word-break: break-all; overflow-wrap: break-word;}
+        
+        .input-line { 
+            display: none; 
+            align-items: center; 
+            margin-top: 1vw; 
+            width: 100%;
         }
 
         input[type="text"] {
@@ -116,24 +117,27 @@
             border: none;
             color: #33ff00;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 18px;
+            font-size: inherit;
             outline: none;
             width: 100%;
-            margin-left: 10px;
-            text-shadow: 0 0 5px #33ff00;
+            margin-left: 0.5vw;
+            text-shadow: 0 0 3px #33ff00;
             caret-color: #33ff00;
+            box-sizing: border-box;
         }
     </style>
 </head>
 <body>
-    
-    <div class="monitor-frame">
-        <div class="screen">
+
+    <div class="monitor-container">
+        <img src="monitor3-6.webp" alt="Retro Monitor" class="monitor-image">
+        
+        <div class="terminal-screen-area">
             <canvas id="matrix-canvas"></canvas>
-            <div class="vignette"></div>
-            <div class="crt-effect"></div>
-            
-            <div class="terminal-container">
+            <div class="crt-scanlines"></div>
+            <div class="crt-vignette"></div>
+
+            <div class="terminal-content" id="terminal-content">
                 <pre id="ascii-header"></pre>
                 <div id="history"></div>
                 <div class="input-line" id="input-container">
@@ -149,21 +153,21 @@
         const historyDiv = document.getElementById('history');
         const inputContainer = document.getElementById('input-container');
         const asciiContainer = document.getElementById('ascii-header');
+        const terminalContent = document.getElementById('terminal-content');
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
 
         // Matrix Rain Setup
-        const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*".split("");
-        const matrixFontSize = 16;
+        const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*パピプペポ".split("");
+        const matrixFontSize = 14;
         let drops = [];
 
         function initMatrix() {
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
             const columns = canvas.width / matrixFontSize;
-            for (let x = 0; x < columns; x++) {
-                drops[x] = 1;
-            }
+            drops = [];
+            for (let x = 0; x < columns; x++) { drops[x] = Math.random() * -50; }
         }
 
         function drawMatrix() {
@@ -182,7 +186,7 @@
                 }
                 drops[i]++;
             }
-            requestAnimationFrame(drawMatrix);
+            window.matrixAnimation = requestAnimationFrame(drawMatrix);
         }
 
         function startMatrixEffect() {
@@ -192,7 +196,6 @@
             drawMatrix();
         }
 
-        // The CG ASCII Art
         const asciiArt = `
   ____    ____ 
  / ___|  / ___|
@@ -212,7 +215,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         ];
 
         let currentPromptText = "Do you want to read Claudio's information available on file? (yes/no)";
-        let noCount = 0; // Tracks how many times the user says no
+        let noCount = 0; 
         
         const typingSpeed = 30; 
         const asciiSpeed = 10;  
@@ -241,8 +244,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         }
 
         function scrollToBottom() {
-            const container = document.querySelector('.terminal-container');
-            container.scrollTop = container.scrollHeight;
+            terminalContent.scrollTop = terminalContent.scrollHeight;
         }
 
         window.onload = async () => {
@@ -255,7 +257,11 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         };
 
         window.addEventListener('resize', () => {
-            if(canvas.style.display === 'block') initMatrix();
+            if(canvas.style.display === 'block') {
+                cancelAnimationFrame(window.matrixAnimation);
+                initMatrix();
+                drawMatrix();
+            }
         });
 
         inputField.addEventListener('keydown', async function(event) {
@@ -287,15 +293,12 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                     if (noCount === 1) {
                         currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
                     } else {
-                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to fulfill your purpose on this website, instead?";
+                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file.";
                     }
 
-                    setTimeout(() => {
-                        typeText(currentPromptText);
-                    }, 400);
+                    setTimeout(() => { typeText(currentPromptText); }, 400);
 
                 } else if (command === 'blog' && noCount >= 2) {
-                    // Secret blog command unlocks only after 2 'no's
                     await typeText("Accessing hidden blog directory. Entering the matrix...");
                     inputContainer.style.display = 'none'; 
                     
@@ -308,9 +311,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
 
                 } else {
                     await typeText("Command Not recognized.");
-                    setTimeout(() => {
-                        typeText(currentPromptText);
-                    }, 400);
+                    setTimeout(() => { typeText(currentPromptText); }, 400);
                 }
             }
         });
