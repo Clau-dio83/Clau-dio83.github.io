@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claudio's Terminal</title>
     <style>
-        /* Base page styling to fill the screen */
+        /* Base page styling */
         body, html {
             margin: 0;
             padding: 0;
             width: 100vw;
             height: 100vh;
-            background-color: #1a1a1a; /* Dark fallback background */
+            background-color: #050505; /* Very dark grey, almost black */
             overflow: hidden;
             display: flex;
             justify-content: center;
@@ -21,54 +21,52 @@
         /* The container holding the monitor image */
         .monitor-wrapper {
             position: relative;
-            width: 100%;
-            height: 100%;
+            /* Force the width to be large, but not wider than the screen */
+            width: 95vw; 
+            /* Let the height be determined by the image's aspect ratio */
+            height: auto; 
+            /* Ensure it doesn't get ridiculously huge on very large screens */
+            max-width: 1600px; 
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* The monitor image itself - object-fit: contain keeps aspect ratio */
+        /* The monitor image itself */
         .monitor-img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            position: absolute; /* Place image at the base layer */
+            width: 100%;
+            height: auto;
+            display: block; /* Removes tiny space below inline images */
             z-index: 1;
         }
 
-        /* The crucial part: We create an invisible div that maps exactly 
-           to the coordinates of the glass screen on the monitor image.
-           These percentages are tuned for the monitor3-6.webp image.
-        */
+        /* The interactive area mapped to the screen */
         .screen-glass-area {
             position: absolute;
             z-index: 10;
             
-            /* Coordinates relative to the monitor image */
-            /* If the image changes, these need adjustment */
-            top: 10%;      /* Distance from top edge of photo */
-            left: 7%;      /* Distance from left edge of photo */
-            width: 61.5%;  /* Width of the glass */
-            height: 77%;   /* Height of the glass */
+            /* Coordinates relative to the monitor image container */
+            top: 10%;      
+            left: 7%;      
+            width: 61.5%;  
+            height: 77%;   
             
-            border-radius: 5%; /* Curve the corners to match the tube */
-            overflow: hidden; /* Hide anything outside the glass */
-            
-            /* Optional: subtle tint to make text pop more against the grey screen */
+            border-radius: 5%; 
+            overflow: hidden; 
             background-color: rgba(5, 10, 5, 0.4); 
         }
 
         /* The actual container where text is printed */
         .terminal-content {
-            padding: 3vw; /* Inner padding so text doesn't touch edges */
+            padding: 2.5vw; /* Responsive padding */
             width: 100%;
             height: 100%;
             box-sizing: border-box;
             overflow-y: auto;
             color: #33ff00;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 1.4vw; /* Font size scales with viewport */
+            /* Increased responsive font size, with a fallback minimum */
+            font-size: max(16px, 1.6vw); 
             line-height: 1.3;
             text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000;
         }
@@ -81,7 +79,7 @@
         #matrix-canvas {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 2; /* Behind text */
+            z-index: 2; 
             display: none;
             opacity: 0;
             transition: opacity 1s ease;
