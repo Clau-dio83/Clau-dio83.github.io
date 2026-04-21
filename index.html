@@ -214,7 +214,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         ];
 
         let currentMode = 'terminal'; 
-        let currentPromptText = "Do you want to read Claudio's information available on file? (yes/no)";
+        let currentPromptText = "Do you want to read Claudio's information available on file? (help to display commands)";
         let noCount = 0; 
         
         const typingSpeed = 30; 
@@ -439,7 +439,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                         noCount++;
                         await typeText("Command Not recognized.");
                         if (noCount === 1) {
-                            currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
+                            currentPromptText = "Do you want to read Claudio's information available on file? (help to display commands) - (you don't really have another option)";
                         } else {
                             currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to reconsider your decision and access the information instead?";
                         }
