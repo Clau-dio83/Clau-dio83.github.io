@@ -285,12 +285,12 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             
             // --- NEW: Mechanical Keyboard Sound ---
             // Un-comment the next line to enable sound. You must have a 'keypress.mp3' file in your folder!
-            // if(event.key !== 'Enter') { new Audio('keypress.mp3').play(); }
+            if(event.key !== 'Enter') { new Audio('keypress.mp3').play(); }
 
             if (event.key === 'Enter' && inputContainer.style.display !== 'none') {
                 
                 // Sound for the Enter key (optional)
-                // new Audio('keypress.mp3').play();
+                new Audio('keypress.mp3').play();
 
                 const command = inputField.value.trim().toLowerCase();
                 
