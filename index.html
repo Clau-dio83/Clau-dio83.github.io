@@ -226,7 +226,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             " " 
         ];
 
-        // --- NEW: STATE MANAGEMENT VARIABLES ---
+        // --- STATE MANAGEMENT VARIABLES ---
         let currentMode = 'terminal'; // Can be 'terminal' or 'game'
         let gameRoom = 'intro';       // Tracks location in the text adventure
         let hasKeycard = false;       // Tracks inventory
@@ -280,12 +280,15 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         // The Main Interaction Logic
         inputField.addEventListener('keydown', async function(event) {
             
-            // Un-comment the next line to enable sound. You must have a 'keypress.mp3' file in your folder!
-            // if(event.key !== 'Enter') { new Audio('keypress.mp3').play(); }
+            // --- AUDIO ACTIVE FOR REGULAR KEYPRESSES ---
+            if(event.key !== 'Enter') { 
+                new Audio('keypress.mp3').play(); 
+            }
 
             if (event.key === 'Enter' && inputContainer.style.display !== 'none') {
                 
-                // new Audio('keypress.mp3').play();
+                // --- AUDIO ACTIVE FOR ENTER KEY ---
+                new Audio('keypress.mp3').play();
 
                 const command = inputField.value.trim().toLowerCase();
                 
@@ -344,12 +347,12 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                         await typeText("Nice try. This incident will be reported.");
                         setTimeout(() => { typeText(currentPromptText); }, 400);
 
-                    // --- NEW: TRIGGER ADVENTURE GAME ---
+                    // --- TRIGGER ADVENTURE GAME ---
                     } else if (command === 'play') {
                         currentMode = 'game';
                         gameRoom = 'intro';
                         hasKeycard = false;
-                        historyDiv.innerHTML = ''; // Clear screen for game
+                        historyDiv.innerHTML = ''; 
                         await typeText("LOADING MODULE: SECTOR 7G ESCAPE...");
                         await typeText("===================================");
                         await typeText("You wake up on the cold floor of a dimly lit server room. The rhythmic hum of cooling fans fills the air.");
@@ -405,7 +408,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                                 await typeText(">>> ESCAPE SUCCESSFUL <<<");
                                 await typeText(" ");
                                 
-                                // WIN CONDITION: Return to terminal mode and ask original question
+                                // WIN CONDITION
                                 currentMode = 'terminal';
                                 setTimeout(() => { typeText("System rebooting... Do you want to read Claudio's information available on file? (yes/no)"); }, 1500);
 
