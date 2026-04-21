@@ -4,54 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claudio's Terminal</title>
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
+    <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
     <style>
-        /* The dark room behind the monitor */
+        /* The main background */
         body {
-            background-color: #0a0a0a;
+            background-color: #050505; /* Very dark background */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
             font-family: 'Courier New', Courier, monospace;
-        }
-
-        /* The physical plastic monitor frame */
-        .monitor-frame {
-            background-color: #1a1a1a;
-            padding: 3vw;
-            border-radius: 30px;
-            box-shadow: 
-                0 20px 50px rgba(0,0,0,0.9), 
-                inset 0 5px 15px rgba(255,255,255,0.05),
-                inset 0 -5px 15px rgba(0,0,0,0.5);
-            width: 90vw;
-            max-width: 900px;
-            height: 80vh;
-            position: relative;
-        }
-
-        /* The glass screen */
-        .screen {
-            background-color: #050505;
-            width: 100%;
-            height: 100%;
-            border-radius: 20px;
-            position: relative;
             overflow: hidden;
-            box-shadow: inset 0 0 30px rgba(51, 255, 0, 0.2);
-            color: #33ff00;
-            font-size: 18px;
-            text-shadow: 0 0 5px #33ff00, 0 0 10px #1a8000;
         }
 
-        /* Matrix Canvas Layer */
-        #matrix-canvas {
+        /* * The container that holds BOTH the monitor image AND the screen content.
+         * The aspect ratio of your provided image is roughly 1.27 : 1 (800x630)
+         */
+        .terminal-wrapper {
+            position: relative;
+            width: 90vw; /* Scales with screen width */
+            max-width: 1200px; /* Prevents it from getting too huge on ultrawide monitors */
+            aspect-ratio: 1.27 / 1; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* The image of the monitor frame */
+        .monitor-frame-image {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: 10; /* The frame sits ON TOP */
+            pointer-events: none; /* Clicks pass through to the screen/input */
+        }
+
+        /* The glowing glass screen sitting BEHIND the frame */
+        .screen {
+            position: absolute; /* Changed to absolute to position freely inside wrapper */
+            background-color: #080a08; /* Dark, almost black background for the tube */
+            
+            /* * PRECISE COORDINATES FOR 'apple-monitor-frame.png'
+             * These percentages align perfectly with the transparent window in your image.
+             */
+            top: 10.5%;
+            left: 7.5%;
+            width: 72.5%;
+            height: 74.5%;
+            
+            border-radius: 12px; /* Slight curve to match the inner bezel */
+            overflow: hidden;
+            box-shadow: inset 0 0 40px rgba(51, 255, 0, 0.15); /* Subtle inner glow */
+            color: #33ff00;
+            font-size: 18px; /* Fixed font size as requested */
+            text-shadow: 0 0 5px #33ff00, 0 0 10px #1a8000;
+            z-index: 5; /* Sits behind the frame image */
+        }
+
+        /* Matrix Canvas Layer */
+        #matrix-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
             z-index: 20; 
             display: none;
             opacity: 0;
@@ -62,7 +81,7 @@
         .vignette {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%);
+            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.6) 100%);
             pointer-events: none;
             z-index: 101;
         }
@@ -71,12 +90,13 @@
         .crt-effect {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
             background-size: 100% 4px;
             pointer-events: none;
             z-index: 100;
         }
 
+        /* The container where the text actually lives */
         .terminal-container {
             padding: 30px;
             position: relative;
@@ -86,37 +106,19 @@
             overflow-y: auto;
         }
 
-        /* Hide scrollbar for maximum realism */
-        .terminal-container::-webkit-scrollbar {
-            display: none;
-        }
-        .terminal-container {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .terminal-container::-webkit-scrollbar { display: none; }
+        .terminal-container { -ms-overflow-style: none; scrollbar-width: none; }
 
-        pre {
-            margin: 0 0 20px 0;
-            font-family: inherit;
-        }
-
-        p {
-            margin: 10px 0;
-            min-height: 20px; 
-        }
-
-        .input-line {
-            display: none;
-            align-items: center;
-            margin-top: 10px;
-        }
+        pre { margin: 0 0 20px 0; font-family: inherit; }
+        p { margin: 10px 0; min-height: 20px; }
+        .input-line { display: none; align-items: center; margin-top: 10px; }
 
         input[type="text"] {
             background: transparent;
             border: none;
             color: #33ff00;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 18px;
+            font-size: inherit;
             outline: none;
             width: 100%;
             margin-left: 10px;
@@ -127,13 +129,15 @@
 </head>
 <body>
     
-    <div class="monitor-frame">
+    <div class="terminal-wrapper">
+        <img src="apple-monitor-frame.png" alt="Monitor Frame" class="monitor-frame-image">
+
         <div class="screen">
             <canvas id="matrix-canvas"></canvas>
             <div class="vignette"></div>
             <div class="crt-effect"></div>
             
-            <div class="terminal-container">
+            <div class="terminal-container" id="terminal-content">
                 <pre id="ascii-header"></pre>
                 <div id="history"></div>
                 <div class="input-line" id="input-container">
@@ -149,11 +153,12 @@
         const historyDiv = document.getElementById('history');
         const inputContainer = document.getElementById('input-container');
         const asciiContainer = document.getElementById('ascii-header');
+        const terminalContent = document.getElementById('terminal-content');
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
 
         // Matrix Rain Setup
-        const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*".split("");
+        const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*パピプペポ".split("");
         const matrixFontSize = 16;
         let drops = [];
 
@@ -161,9 +166,8 @@
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
             const columns = canvas.width / matrixFontSize;
-            for (let x = 0; x < columns; x++) {
-                drops[x] = 1;
-            }
+            drops = [];
+            for (let x = 0; x < columns; x++) { drops[x] = 1; }
         }
 
         function drawMatrix() {
@@ -182,7 +186,7 @@
                 }
                 drops[i]++;
             }
-            requestAnimationFrame(drawMatrix);
+            window.matrixAnimation = requestAnimationFrame(drawMatrix);
         }
 
         function startMatrixEffect() {
@@ -192,7 +196,6 @@
             drawMatrix();
         }
 
-        // The CG ASCII Art
         const asciiArt = `
   ____    ____ 
  / ___|  / ___|
@@ -212,7 +215,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         ];
 
         let currentPromptText = "Do you want to read Claudio's information available on file? (yes/no)";
-        let noCount = 0; // Tracks how many times the user says no
+        let noCount = 0; 
         
         const typingSpeed = 30; 
         const asciiSpeed = 10;  
@@ -241,8 +244,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         }
 
         function scrollToBottom() {
-            const container = document.querySelector('.terminal-container');
-            container.scrollTop = container.scrollHeight;
+            terminalContent.scrollTop = terminalContent.scrollHeight;
         }
 
         window.onload = async () => {
@@ -287,7 +289,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                     if (noCount === 1) {
                         currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
                     } else {
-                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to fulfill your purpose on this website, instead?";
+                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to reconsider your decision and access the information instead?";
                     }
 
                     setTimeout(() => {
@@ -295,7 +297,6 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                     }, 400);
 
                 } else if (command === 'blog' && noCount >= 2) {
-                    // Secret blog command unlocks only after 2 'no's
                     await typeText("Accessing hidden blog directory. Entering the matrix...");
                     inputContainer.style.display = 'none'; 
                     
