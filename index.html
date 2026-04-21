@@ -5,85 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claudio's Terminal</title>
     <style>
-        /* The entire page setup */
-        body {
+        /* Base page styling to fill the screen */
+        body, html {
             margin: 0;
             padding: 0;
-            background-color: #1a1a1a; /* Fallback color */
+            width: 100vw;
+            height: 100vh;
+            background-color: #1a1a1a; /* Dark fallback background */
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
         }
 
         /* The container holding the monitor image */
-        .monitor-container {
+        .monitor-wrapper {
             position: relative;
-            width: 100vw;
-            height: 100vh;
-            /* We use object-fit to ensure the image covers the screen but maintains aspect ratio */
+            width: 100%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* The monitor image itself */
-        .monitor-image {
+        /* The monitor image itself - object-fit: contain keeps aspect ratio */
+        .monitor-img {
             max-width: 100%;
             max-height: 100%;
-            object-fit: contain; /* Keeps the whole monitor visible */
+            object-fit: contain;
+            position: absolute; /* Place image at the base layer */
             z-index: 1;
         }
 
-        /* The interactive terminal area, positioned over the glass */
-        .terminal-screen-area {
+        /* The crucial part: We create an invisible div that maps exactly 
+           to the coordinates of the glass screen on the monitor image.
+           These percentages are tuned for the monitor3-6.webp image.
+        */
+        .screen-glass-area {
             position: absolute;
             z-index: 10;
-            /* These percentages are roughly mapped to the glass area 
-               of the 'monitor3-6.webp' image. They might need slight tweaking 
-               depending on exact browser dimensions, but they should be very close.
-            */
-            top: 13%;     
-            left: 10%;    
-            width: 61%;   
-            height: 73%;  
             
-            overflow: hidden;
-            border-radius: 4% / 5%; /* Slight curve for the CRT glass */
+            /* Coordinates relative to the monitor image */
+            /* If the image changes, these need adjustment */
+            top: 10%;      /* Distance from top edge of photo */
+            left: 7%;      /* Distance from left edge of photo */
+            width: 61.5%;  /* Width of the glass */
+            height: 77%;   /* Height of the glass */
             
-            /* Optional: Add a slight tint to blend the text with the grey glass */
-            background-color: rgba(10, 20, 10, 0.4); 
+            border-radius: 5%; /* Curve the corners to match the tube */
+            overflow: hidden; /* Hide anything outside the glass */
+            
+            /* Optional: subtle tint to make text pop more against the grey screen */
+            background-color: rgba(5, 10, 5, 0.4); 
         }
 
-        /* The container for the text itself */
+        /* The actual container where text is printed */
         .terminal-content {
-            padding: 2vw; /* Responsive padding */
+            padding: 3vw; /* Inner padding so text doesn't touch edges */
+            width: 100%;
             height: 100%;
             box-sizing: border-box;
             overflow-y: auto;
             color: #33ff00;
-            font-size: 1.4vw; /* Responsive text size */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.4vw; /* Font size scales with viewport */
             line-height: 1.3;
             text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000;
         }
 
-        /* Hide scrollbars for realism */
+        /* Hide scrollbars */
         .terminal-content::-webkit-scrollbar { display: none; }
         .terminal-content { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* The Matrix Effect Canvas */
+        /* The Matrix Canvas */
         #matrix-canvas {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 2; /* Behind text, above background */
+            z-index: 2; /* Behind text */
             display: none;
             opacity: 0;
             transition: opacity 1s ease;
         }
 
-        /* Scanlines specific to the text area */
+        /* CRT Scanlines overlaid on the text */
         .crt-scanlines {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -102,8 +106,19 @@
             z-index: 21;
         }
 
-        pre { margin: 0 0 1vw 0; font-family: inherit; white-space: pre-wrap; word-wrap: break-word;}
-        p { margin: 0.5vw 0; min-height: 1.2em; word-break: break-all; overflow-wrap: break-word;}
+        pre { 
+            margin: 0 0 1vw 0; 
+            font-family: inherit; 
+            white-space: pre-wrap; 
+            word-wrap: break-word;
+        }
+        
+        p { 
+            margin: 0.5vw 0; 
+            min-height: 1.2em; 
+            word-break: break-all; 
+            overflow-wrap: break-word;
+        }
         
         .input-line { 
             display: none; 
@@ -129,10 +144,10 @@
 </head>
 <body>
 
-    <div class="monitor-container">
-        <img src="monitor3-6.webp" alt="Retro Monitor" class="monitor-image">
+    <div class="monitor-wrapper">
+        <img src="monitor3-6.webp" alt="Retro Monitor" class="monitor-img" id="monitor-img">
         
-        <div class="terminal-screen-area">
+        <div class="screen-glass-area" id="screen-glass">
             <canvas id="matrix-canvas"></canvas>
             <div class="crt-scanlines"></div>
             <div class="crt-vignette"></div>
@@ -149,6 +164,8 @@
     </div>
 
     <script>
+        // --- JS LOGIC REMAINS IDENTICAL ---
+
         const inputField = document.getElementById('command-input');
         const historyDiv = document.getElementById('history');
         const inputContainer = document.getElementById('input-container');
@@ -156,6 +173,39 @@
         const terminalContent = document.getElementById('terminal-content');
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
+        const monitorImg = document.getElementById('monitor-img');
+        const screenGlass = document.getElementById('screen-glass');
+
+        // Dynamic resizing calculation for the screen overlay
+        // This ensures the text area stays pinned to the image even if window resizes
+        function resizeScreenArea() {
+            // Get the actual rendered dimensions of the image
+            const imgRect = monitorImg.getBoundingClientRect();
+            
+            // Map the percentages to the actual image size, not the window
+            screenGlass.style.width = (imgRect.width * 0.615) + 'px';
+            screenGlass.style.height = (imgRect.height * 0.77) + 'px';
+            
+            // Calculate offsets based on where the image is centered
+            const offsetX = imgRect.left + (imgRect.width * 0.07);
+            const offsetY = imgRect.top + (imgRect.height * 0.10);
+            
+            screenGlass.style.left = offsetX + 'px';
+            screenGlass.style.top = offsetY + 'px';
+
+            if(canvas.style.display === 'block') {
+                cancelAnimationFrame(window.matrixAnimation);
+                initMatrix();
+                drawMatrix();
+            }
+        }
+
+        // Run resize logic when image loads and on window resize
+        monitorImg.addEventListener('load', resizeScreenArea);
+        window.addEventListener('resize', resizeScreenArea);
+        // Initial call in case image is already cached
+        resizeScreenArea();
+
 
         // Matrix Rain Setup
         const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*パピプペポ".split("");
@@ -248,6 +298,9 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         }
 
         window.onload = async () => {
+            // Force layout calculation before starting animations
+            resizeScreenArea();
+            
             await drawAscii();
             for (const line of introSequence) {
                 await typeText(line);
@@ -255,14 +308,6 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             }
             await typeText(currentPromptText);
         };
-
-        window.addEventListener('resize', () => {
-            if(canvas.style.display === 'block') {
-                cancelAnimationFrame(window.matrixAnimation);
-                initMatrix();
-                drawMatrix();
-            }
-        });
 
         inputField.addEventListener('keydown', async function(event) {
             if (event.key === 'Enter' && inputContainer.style.display !== 'none') {
@@ -293,7 +338,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                     if (noCount === 1) {
                         currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
                     } else {
-                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file.";
+                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to reconsider your decision and access the information instead?";
                     }
 
                     setTimeout(() => { typeText(currentPromptText); }, 400);
