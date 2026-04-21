@@ -4,137 +4,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claudio's Terminal</title>
-    <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
-    <link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
-    <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
-    <link rel="manifest" href="favicon/site.webmanifest">
     <style>
-        /* Base page styling */
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #050505;
-            overflow: hidden;
+        /* The dark room behind the monitor */
+        body {
+            background-color: #0a0a0a;
             display: flex;
             justify-content: center;
             align-items: center;
+            height: 100vh;
+            margin: 0;
             font-family: 'Courier New', Courier, monospace;
         }
 
-        /* Questo container mantiene sempre le proporzioni dell'immagine 
-           (circa 1.34:1 in base alla tua foto).
-        */
-        .scaling-wrapper {
+        /* The physical plastic monitor frame */
+        .monitor-frame {
+            background-color: #1a1a1a;
+            padding: 3vw;
+            border-radius: 30px;
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.9), 
+                inset 0 5px 15px rgba(255,255,255,0.05),
+                inset 0 -5px 15px rgba(0,0,0,0.5);
+            width: 90vw;
+            max-width: 900px;
+            height: 80vh;
             position: relative;
-            width: 95vw; 
-            max-width: 1600px; 
-            aspect-ratio: 1.34 / 1; /* Le proporzioni ESATTE dell'immagine */
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
-        .monitor-img {
+        /* The glass screen */
+        .screen {
+            background-color: #050505;
             width: 100%;
             height: 100%;
-            object-fit: cover; 
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(51, 255, 0, 0.2);
+            color: #33ff00;
+            font-size: 18px;
+            text-shadow: 0 0 5px #33ff00, 0 0 10px #1a8000;
+        }
+
+        /* Matrix Canvas Layer */
+        #matrix-canvas {
             position: absolute;
             top: 0;
             left: 0;
-            z-index: 1;
-            /* Leggermente scurita l'immagine per far risaltare il verde */
-            filter: brightness(0.9); 
-        }
-
-        /* IL TRUCCO DELLA GRIGLIA: 
-           Creiamo una griglia 100x100 sopra l'immagine.
-           Questo ci permette di posizionare elementi con precisione chirurgica.
-        */
-        .grid-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10;
-            display: grid;
-            grid-template-columns: repeat(100, 1fr);
-            grid-template-rows: repeat(100, 1fr);
-        }
-
-        /* Posizioniamo l'area del testo usando le righe e le colonne della griglia.
-           Queste coordinate definiscono ESATTAMENTE l'interno della cornice marrone.
-        */
-        .screen-glass-area {
-            /* Inizia colonna 7, finisce colonna 72 */
-            grid-column: 7 / 72; 
-            /* Inizia riga 10, finisce riga 92 */
-            grid-row: 10 / 92;   
-            
-            position: relative;
-            border-radius: 12px; 
-            overflow: hidden; 
-            
-            /* LO SFONDO: Quasi nero e totalmente opaco per coprire lo schermo dietro */
-            background-color: #080a08; 
-            
-            /* Leggera ombra interna per dare profondità alla cornice marrone */
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-        }
-
-        .terminal-content {
-            padding: 2.5vw; 
             width: 100%;
             height: 100%;
-            box-sizing: border-box;
-            overflow-y: auto; 
-            color: #33ff00;
-            
-            /* IL TESTO: Fisso a 18px come da tua richiesta originale */
-            font-size: 18px; 
-            line-height: 1.3;
-            text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000;
-        }
-
-        .terminal-content::-webkit-scrollbar { display: none; }
-        .terminal-content { -ms-overflow-style: none; scrollbar-width: none; }
-
-        #matrix-canvas {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 2; 
+            z-index: 20; 
             display: none;
             opacity: 0;
-            transition: opacity 1s ease;
+            transition: opacity 1s ease; 
         }
 
-        .crt-scanlines {
+        /* The curved screen bulge/vignette effect */
+        .vignette {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        /* Simulates CRT scanlines */
+        .crt-effect {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
             background-size: 100% 4px;
             pointer-events: none;
-            z-index: 20;
+            z-index: 100;
         }
 
-        pre { 
-            margin: 0 0 20px 0; 
-            font-family: inherit; 
-            white-space: pre-wrap; 
-            word-wrap: break-word;
+        .terminal-container {
+            padding: 30px;
+            position: relative;
+            z-index: 10;
+            height: 100%;
+            box-sizing: border-box;
+            overflow-y: auto;
         }
-        
-        p { 
-            margin: 10px 0; 
+
+        /* Hide scrollbar for maximum realism */
+        .terminal-container::-webkit-scrollbar {
+            display: none;
+        }
+        .terminal-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        pre {
+            margin: 0 0 20px 0;
+            font-family: inherit;
+        }
+
+        p {
+            margin: 10px 0;
             min-height: 20px; 
-            word-break: break-all; 
-            overflow-wrap: break-word;
         }
-        
-        .input-line { 
-            display: none; 
-            align-items: center; 
-            margin-top: 10px; 
-            width: 100%;
+
+        .input-line {
+            display: none;
+            align-items: center;
+            margin-top: 10px;
         }
 
         input[type="text"] {
@@ -142,60 +116,54 @@
             border: none;
             color: #33ff00;
             font-family: 'Courier New', Courier, monospace;
-            font-size: inherit;
+            font-size: 18px;
             outline: none;
             width: 100%;
             margin-left: 10px;
-            text-shadow: 0 0 3px #33ff00;
+            text-shadow: 0 0 5px #33ff00;
             caret-color: #33ff00;
-            box-sizing: border-box;
         }
     </style>
 </head>
 <body>
-
-    <div class="scaling-wrapper">
-        <img src="monitor3-6.webp" alt="Retro Monitor" class="monitor-img" id="monitor-img">
-        
-        <div class="grid-overlay">
-            <div class="screen-glass-area">
-                <canvas id="matrix-canvas"></canvas>
-                <div class="crt-scanlines"></div>
-
-                <div class="terminal-content" id="terminal-content">
-                    <pre id="ascii-header"></pre>
-                    <div id="history"></div>
-                    <div class="input-line" id="input-container">
-                        <span>></span>
-                        <input type="text" id="command-input" autocomplete="off" spellcheck="false">
-                    </div>
+    
+    <div class="monitor-frame">
+        <div class="screen">
+            <canvas id="matrix-canvas"></canvas>
+            <div class="vignette"></div>
+            <div class="crt-effect"></div>
+            
+            <div class="terminal-container">
+                <pre id="ascii-header"></pre>
+                <div id="history"></div>
+                <div class="input-line" id="input-container">
+                    <span>></span>
+                    <input type="text" id="command-input" autocomplete="off" spellcheck="false">
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // LA LOGICA JAVASCRIPT E' IDENTICA ALLA TUA VERSIONE PRECEDENTE
-
         const inputField = document.getElementById('command-input');
         const historyDiv = document.getElementById('history');
         const inputContainer = document.getElementById('input-container');
         const asciiContainer = document.getElementById('ascii-header');
-        const terminalContent = document.getElementById('terminal-content');
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
 
         // Matrix Rain Setup
-        const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*パピプペポ".split("");
-        const matrixFontSize = 14;
+        const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*".split("");
+        const matrixFontSize = 16;
         let drops = [];
 
         function initMatrix() {
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
             const columns = canvas.width / matrixFontSize;
-            drops = [];
-            for (let x = 0; x < columns; x++) { drops[x] = Math.random() * -50; }
+            for (let x = 0; x < columns; x++) {
+                drops[x] = 1;
+            }
         }
 
         function drawMatrix() {
@@ -214,7 +182,7 @@
                 }
                 drops[i]++;
             }
-            window.matrixAnimation = requestAnimationFrame(drawMatrix);
+            requestAnimationFrame(drawMatrix);
         }
 
         function startMatrixEffect() {
@@ -224,6 +192,7 @@
             drawMatrix();
         }
 
+        // The CG ASCII Art
         const asciiArt = `
   ____    ____ 
  / ___|  / ___|
@@ -243,7 +212,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         ];
 
         let currentPromptText = "Do you want to read Claudio's information available on file? (yes/no)";
-        let noCount = 0; 
+        let noCount = 0; // Tracks how many times the user says no
         
         const typingSpeed = 30; 
         const asciiSpeed = 10;  
@@ -272,7 +241,8 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         }
 
         function scrollToBottom() {
-            terminalContent.scrollTop = terminalContent.scrollHeight;
+            const container = document.querySelector('.terminal-container');
+            container.scrollTop = container.scrollHeight;
         }
 
         window.onload = async () => {
@@ -285,11 +255,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         };
 
         window.addEventListener('resize', () => {
-            if(canvas.style.display === 'block') {
-                cancelAnimationFrame(window.matrixAnimation);
-                initMatrix();
-                drawMatrix();
-            }
+            if(canvas.style.display === 'block') initMatrix();
         });
 
         inputField.addEventListener('keydown', async function(event) {
@@ -321,12 +287,15 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                     if (noCount === 1) {
                         currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
                     } else {
-                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to reconsider your decision and access the information instead?";
+                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to fulfill your purpose on this website, instead?";
                     }
 
-                    setTimeout(() => { typeText(currentPromptText); }, 400);
+                    setTimeout(() => {
+                        typeText(currentPromptText);
+                    }, 400);
 
                 } else if (command === 'blog' && noCount >= 2) {
+                    // Secret blog command unlocks only after 2 'no's
                     await typeText("Accessing hidden blog directory. Entering the matrix...");
                     inputContainer.style.display = 'none'; 
                     
@@ -339,7 +308,9 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
 
                 } else {
                     await typeText("Command Not recognized.");
-                    setTimeout(() => { typeText(currentPromptText); }, 400);
+                    setTimeout(() => {
+                        typeText(currentPromptText);
+                    }, 400);
                 }
             }
         });
