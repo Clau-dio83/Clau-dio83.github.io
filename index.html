@@ -28,7 +28,7 @@
             position: relative;
             width: 90vw; 
             max-width: 1200px; 
-            aspect-ratio: 1.27 / 1; /* Proportions of your Apple monitor PNG */
+            aspect-ratio: 1.27 / 1; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -45,17 +45,14 @@
             pointer-events: none; 
         }
 
-        /* The glowing glass screen sitting BEHIND the frame */
+        /* The glowing glass screen */
         .screen {
             position: absolute; 
             background-color: #080a08; 
-            
-            /* UPDATED COORDINATES: Shifted right and made slightly wider */
             top: 10.5%;
-            left: 8.5%;    /* Shifted slightly right */
-            width: 74%;    /* Made wider to fill the frame */
+            left: 8.5%;    
+            width: 74%;    
             height: 74.5%;
-            
             border-radius: 12px; 
             overflow: hidden;
             box-shadow: inset 0 0 40px rgba(51, 255, 0, 0.15); 
@@ -75,17 +72,16 @@
             transition: opacity 1s ease; 
         }
 
-        /* THE RESTORED CRT CURVE EFFECT */
+        /* CRT Curve Shadow */
         .crt-vignette {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            /* Creates a dark shadow around the edges, simulating curved glass */
             background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(0,0,0,0.8) 110%);
             pointer-events: none;
             z-index: 101;
         }
 
-        /* Simulates CRT scanlines */
+        /* CRT Scanlines */
         .crt-effect {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -95,15 +91,22 @@
             z-index: 100;
         }
 
+        /* --- NEW: Phosphor Pulse Animation --- */
+        @keyframes phosphorPulse {
+            0%, 100% { text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000; opacity: 0.95; }
+            50% { text-shadow: 0 0 5px #33ff00, 0 0 12px #20a000; opacity: 1; }
+        }
+
         /* The container where the text actually lives */
         .terminal-container {
-            /* UPDATED PADDING: Pushes text further from the left edge */
             padding: 40px 40px 30px 50px; 
             position: relative;
             z-index: 10;
             height: 100%;
             box-sizing: border-box;
             overflow-y: auto;
+            /* Apply the breathing pulse effect */
+            animation: phosphorPulse 4s infinite alternate ease-in-out;
         }
 
         .terminal-container::-webkit-scrollbar { display: none; }
@@ -113,6 +116,7 @@
         p { margin: 10px 0; min-height: 20px; }
         .input-line { display: none; align-items: center; margin-top: 10px; }
 
+        /* --- NEW: Retro Block Cursor --- */
         input[type="text"] {
             background: transparent;
             border: none;
@@ -123,7 +127,16 @@
             width: 100%;
             margin-left: 10px;
             text-shadow: 0 0 5px #33ff00;
-            caret-color: #33ff00;
+            
+            /* Hide the modern blinking line */
+            caret-color: transparent; 
+            
+            /* Create the solid block */
+            background: linear-gradient(90deg, #33ff00 11px, transparent 0) no-repeat;
+            background-size: 11px 1.2em;
+            
+            /* Move the block based on the character count variable set by JS */
+            background-position: calc(1ch * var(--char-count, 0)) center;
         }
     </style>
 </head>
@@ -150,7 +163,6 @@
     </div>
 
     <script>
-        // Javascript logic remains unchanged. 
         const inputField = document.getElementById('command-input');
         const historyDiv = document.getElementById('history');
         const inputContainer = document.getElementById('input-container');
@@ -158,6 +170,12 @@
         const terminalContent = document.getElementById('terminal-content');
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
+
+        // --- NEW: Block Cursor Tracking ---
+        // This updates the CSS variable every time you type so the cursor moves
+        inputField.addEventListener('input', () => {
+            inputField.style.setProperty('--char-count', inputField.value.length);
+        });
 
         // Matrix Rain Setup
         const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*パピプペポ".split("");
@@ -262,58 +280,77 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             if(canvas.style.display === 'block') initMatrix();
         });
 
+        // The Main Interaction Logic
         inputField.addEventListener('keydown', async function(event) {
+            
+            // --- NEW: Mechanical Keyboard Sound ---
+            // Un-comment the next line to enable sound. You must have a 'keypress.mp3' file in your folder!
+            // if(event.key !== 'Enter') { new Audio('keypress.mp3').play(); }
+
             if (event.key === 'Enter' && inputContainer.style.display !== 'none') {
+                
+                // Sound for the Enter key (optional)
+                // new Audio('keypress.mp3').play();
+
                 const command = inputField.value.trim().toLowerCase();
                 
+                // Echo the user's command
                 const userEcho = document.createElement('p');
                 userEcho.textContent = "> " + inputField.value;
                 historyDiv.appendChild(userEcho);
                 
+                // Reset input and block cursor position
                 inputField.value = ''; 
+                inputField.style.setProperty('--char-count', 0);
                 scrollToBottom();
 
+                // --- EXPANDED COMMAND LIST ---
                 if (command === 'yes' || command === 'y') {
                     await typeText("Entering the matrix...");
                     inputContainer.style.display = 'none'; 
-                    
                     setTimeout(() => {
                         startMatrixEffect();
-                        setTimeout(() => {
-                            window.location.href = "cv.html"; 
-                        }, 3000);
+                        setTimeout(() => { window.location.href = "cv.html"; }, 3000);
                     }, 500);
 
                 } else if (command === 'no' || command === 'n') {
                     noCount++;
                     await typeText("Command Not recognized.");
-                    
                     if (noCount === 1) {
                         currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
                     } else {
                         currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to reconsider your decision and access the information instead?";
                     }
-
-                    setTimeout(() => {
-                        typeText(currentPromptText);
-                    }, 400);
+                    setTimeout(() => { typeText(currentPromptText); }, 400);
 
                 } else if (command === 'blog' && noCount >= 2) {
                     await typeText("Accessing hidden blog directory. Entering the matrix...");
                     inputContainer.style.display = 'none'; 
-                    
                     setTimeout(() => {
                         startMatrixEffect();
-                        setTimeout(() => {
-                            window.location.href = "http://www.claudiogiordani.com/blog"; 
-                        }, 3000);
+                        setTimeout(() => { window.location.href = "http://www.claudiogiordani.com/blog"; }, 3000);
                     }, 500);
 
+                // --- NEW EASTER EGGS ---
+                } else if (command === 'clear') {
+                    historyDiv.innerHTML = '';
+                    setTimeout(() => { typeText(currentPromptText); }, 200);
+
+                } else if (command === 'help') {
+                    await typeText("AVAILABLE COMMANDS: yes, no, clear, whoami, sudo");
+                    setTimeout(() => { typeText(currentPromptText); }, 400);
+
+                } else if (command === 'whoami') {
+                    await typeText("GUEST_USER_994. ACCESS LEVEL: RESTRICTED.");
+                    setTimeout(() => { typeText(currentPromptText); }, 400);
+
+                } else if (command === 'sudo') {
+                    await typeText("Nice try. This incident will be reported.");
+                    setTimeout(() => { typeText(currentPromptText); }, 400);
+
                 } else {
-                    await typeText("Command Not recognized.");
-                    setTimeout(() => {
-                        typeText(currentPromptText);
-                    }, 400);
+                    await typeText("Command Not recognized. Type 'help' for options.");
+                    setTimeout(() => { typeText(currentPromptText); }, 400);
                 }
             }
         });
