@@ -45,22 +45,22 @@
             z-index: 1;
         }
 
-        /* The container mapped exactly to the glass screen coordinates for fullpage cover on 16:9 screen */
+        /* The container mapped exactly to the glass screen coordinates */
         .screen-glass-area {
             position: absolute;
             z-index: 10;
             
-            /* Coordinates relative to the monitor image - tuned for fullpage cover on ~16:9 */
-            top: 8%;      /* Adjust top distance for cover */
-            left: 6%;      /* Adjust left distance for cover */
-            width: 63%;  /* Adjust width for cover */
-            height: 82%;   /* Adjust height for cover */
+            /* UPDATED: Adjusted to fit perfectly inside the inner brown bevel */
+            top: 15%;      
+            left: 14%;      
+            width: 48%;  
+            height: 69%;   
             
-            border-radius: 5%; /* Curve the corners to match the tube */
+            border-radius: 4%; /* Curve the corners to match the tube */
             overflow: hidden; /* Hide anything outside the glass */
             
-            /* Subtly tint the screen to make text pop more against the grey glass */
-            background-color: rgba(5, 10, 5, 0.3); 
+            /* UPDATED: Darker, almost opaque background */
+            background-color: rgba(5, 5, 5, 0.85); 
         }
 
         /* The actual container where text is printed */
@@ -72,7 +72,7 @@
             overflow-y: auto;
             color: #33ff00;
             
-            /* Reverted larger, non-responsive text size */
+            /* UPDATED: Reverted to the original, more natural text size */
             font-size: 18px; 
             line-height: 1.3;
             text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000;
