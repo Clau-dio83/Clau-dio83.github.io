@@ -91,7 +91,7 @@
             z-index: 100;
         }
 
-        /* --- NEW: Phosphor Pulse Animation --- */
+        /* Phosphor Pulse Animation */
         @keyframes phosphorPulse {
             0%, 100% { text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000; opacity: 0.95; }
             50% { text-shadow: 0 0 5px #33ff00, 0 0 12px #20a000; opacity: 1; }
@@ -105,7 +105,6 @@
             height: 100%;
             box-sizing: border-box;
             overflow-y: auto;
-            /* Apply the breathing pulse effect */
             animation: phosphorPulse 4s infinite alternate ease-in-out;
         }
 
@@ -116,7 +115,7 @@
         p { margin: 10px 0; min-height: 20px; }
         .input-line { display: none; align-items: center; margin-top: 10px; }
 
-        /* --- NEW: Retro Block Cursor --- */
+        /* Retro Block Cursor */
         input[type="text"] {
             background: transparent;
             border: none;
@@ -127,15 +126,9 @@
             width: 100%;
             margin-left: 10px;
             text-shadow: 0 0 5px #33ff00;
-            
-            /* Hide the modern blinking line */
             caret-color: transparent; 
-            
-            /* Create the solid block */
             background: linear-gradient(90deg, #33ff00 11px, transparent 0) no-repeat;
             background-size: 11px 1.2em;
-            
-            /* Move the block based on the character count variable set by JS */
             background-position: calc(1ch * var(--char-count, 0)) center;
         }
     </style>
@@ -171,8 +164,7 @@
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
 
-        // --- NEW: Block Cursor Tracking ---
-        // This updates the CSS variable every time you type so the cursor moves
+        // Block Cursor Tracking
         inputField.addEventListener('input', () => {
             inputField.style.setProperty('--char-count', inputField.value.length);
         });
@@ -234,6 +226,11 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             " " 
         ];
 
+        // --- NEW: STATE MANAGEMENT VARIABLES ---
+        let currentMode = 'terminal'; // Can be 'terminal' or 'game'
+        let gameRoom = 'intro';       // Tracks location in the text adventure
+        let hasKeycard = false;       // Tracks inventory
+        
         let currentPromptText = "Do you want to read Claudio's information available on file? (yes/no)";
         let noCount = 0; 
         
@@ -283,74 +280,157 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         // The Main Interaction Logic
         inputField.addEventListener('keydown', async function(event) {
             
-            // --- NEW: Mechanical Keyboard Sound ---
             // Un-comment the next line to enable sound. You must have a 'keypress.mp3' file in your folder!
-            if(event.key !== 'Enter') { new Audio('keypress.mp3').play(); }
+            // if(event.key !== 'Enter') { new Audio('keypress.mp3').play(); }
 
             if (event.key === 'Enter' && inputContainer.style.display !== 'none') {
                 
-                // Sound for the Enter key (optional)
-                new Audio('keypress.mp3').play();
+                // new Audio('keypress.mp3').play();
 
                 const command = inputField.value.trim().toLowerCase();
                 
-                // Echo the user's command
                 const userEcho = document.createElement('p');
                 userEcho.textContent = "> " + inputField.value;
                 historyDiv.appendChild(userEcho);
                 
-                // Reset input and block cursor position
                 inputField.value = ''; 
                 inputField.style.setProperty('--char-count', 0);
                 scrollToBottom();
 
-                // --- EXPANDED COMMAND LIST ---
-                if (command === 'yes' || command === 'y') {
-                    await typeText("Entering the matrix...");
-                    inputContainer.style.display = 'none'; 
-                    setTimeout(() => {
-                        startMatrixEffect();
-                        setTimeout(() => { window.location.href = "cv.html"; }, 3000);
-                    }, 500);
+                // ==========================================
+                // MODE 1: STANDARD TERMINAL LOGIC
+                // ==========================================
+                if (currentMode === 'terminal') {
+                    
+                    if (command === 'yes' || command === 'y') {
+                        await typeText("Entering the matrix...");
+                        inputContainer.style.display = 'none'; 
+                        setTimeout(() => {
+                            startMatrixEffect();
+                            setTimeout(() => { window.location.href = "cv.html"; }, 3000);
+                        }, 500);
 
-                } else if (command === 'no' || command === 'n') {
-                    noCount++;
-                    await typeText("Command Not recognized.");
-                    if (noCount === 1) {
-                        currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
+                    } else if (command === 'no' || command === 'n') {
+                        noCount++;
+                        await typeText("Command Not recognized.");
+                        if (noCount === 1) {
+                            currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
+                        } else {
+                            currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to reconsider your decision and access the information instead?";
+                        }
+                        setTimeout(() => { typeText(currentPromptText); }, 400);
+
+                    } else if (command === 'blog' && noCount >= 2) {
+                        await typeText("Accessing hidden blog directory. Entering the matrix...");
+                        inputContainer.style.display = 'none'; 
+                        setTimeout(() => {
+                            startMatrixEffect();
+                            setTimeout(() => { window.location.href = "http://www.claudiogiordani.com/blog"; }, 3000);
+                        }, 500);
+
+                    } else if (command === 'clear') {
+                        historyDiv.innerHTML = '';
+                        setTimeout(() => { typeText(currentPromptText); }, 200);
+
+                    } else if (command === 'help') {
+                        await typeText("AVAILABLE COMMANDS: yes, no, clear, play, whoami, sudo");
+                        setTimeout(() => { typeText(currentPromptText); }, 400);
+
+                    } else if (command === 'whoami') {
+                        await typeText("GUEST_USER_994. ACCESS LEVEL: RESTRICTED.");
+                        setTimeout(() => { typeText(currentPromptText); }, 400);
+
+                    } else if (command === 'sudo') {
+                        await typeText("Nice try. This incident will be reported.");
+                        setTimeout(() => { typeText(currentPromptText); }, 400);
+
+                    // --- NEW: TRIGGER ADVENTURE GAME ---
+                    } else if (command === 'play') {
+                        currentMode = 'game';
+                        gameRoom = 'intro';
+                        hasKeycard = false;
+                        historyDiv.innerHTML = ''; // Clear screen for game
+                        await typeText("LOADING MODULE: SECTOR 7G ESCAPE...");
+                        await typeText("===================================");
+                        await typeText("You wake up on the cold floor of a dimly lit server room. The rhythmic hum of cooling fans fills the air.");
+                        await typeText("There is a heavy steel blast door to the NORTH.");
+                        await typeText("To the EAST, a retro computer terminal flickers on a desk.");
+                        await typeText("Type 'north' or 'east' to move. Type 'quit' to exit the simulation.");
+
                     } else {
-                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to reconsider your decision and access the information instead?";
+                        await typeText("Command Not recognized. Type 'help' for options.");
+                        setTimeout(() => { typeText(currentPromptText); }, 400);
                     }
-                    setTimeout(() => { typeText(currentPromptText); }, 400);
 
-                } else if (command === 'blog' && noCount >= 2) {
-                    await typeText("Accessing hidden blog directory. Entering the matrix...");
-                    inputContainer.style.display = 'none'; 
-                    setTimeout(() => {
-                        startMatrixEffect();
-                        setTimeout(() => { window.location.href = "http://www.claudiogiordani.com/blog"; }, 3000);
-                    }, 500);
+                // ==========================================
+                // MODE 2: TEXT ADVENTURE LOGIC
+                // ==========================================
+                } else if (currentMode === 'game') {
+                    
+                    if (command === 'quit' || command === 'exit') {
+                        currentMode = 'terminal';
+                        historyDiv.innerHTML = ''; 
+                        await typeText("Exiting simulation module...");
+                        await typeText(currentPromptText);
+                        return;
+                    }
 
-                // --- NEW EASTER EGGS ---
-                } else if (command === 'clear') {
-                    historyDiv.innerHTML = '';
-                    setTimeout(() => { typeText(currentPromptText); }, 200);
+                    if (gameRoom === 'intro') {
+                        if (command === 'north' || command === 'n') {
+                            gameRoom = 'door';
+                            await typeText("You stand before the massive blast door. Beside it is a card reader glowing with an angry red light.");
+                            await typeText("Type 'south' to go back, or 'use card' if you have one.");
+                        } else if (command === 'east' || command === 'e') {
+                            gameRoom = 'desk';
+                            if (!hasKeycard) {
+                                await typeText("You approach the flickering terminal. Sitting beside the keyboard is a RED KEYCARD.");
+                                await typeText("Type 'west' to go back, or 'take card' to grab it.");
+                            } else {
+                                await typeText("You approach the flickering terminal. The desk is empty.");
+                                await typeText("Type 'west' to go back.");
+                            }
+                        } else {
+                            await typeText("Invalid command. Try 'north', 'east', or 'quit'.");
+                        }
 
-                } else if (command === 'help') {
-                    await typeText("AVAILABLE COMMANDS: yes, no, clear, whoami, sudo");
-                    setTimeout(() => { typeText(currentPromptText); }, 400);
+                    } else if (gameRoom === 'door') {
+                        if (command === 'south' || command === 's') {
+                            gameRoom = 'intro';
+                            await typeText("You are back in the center of the server room. Door to the NORTH, terminal to the EAST.");
+                        } else if (command === 'use card' || command === 'use' || command === 'swipe card') {
+                            if (hasKeycard) {
+                                await typeText("You swipe the RED KEYCARD. The reader beeps affirmatively and the light turns green!");
+                                await typeText("The heavy blast door grinds open, revealing a bright corridor. You step out into the light...");
+                                await typeText(" ");
+                                await typeText(">>> ESCAPE SUCCESSFUL <<<");
+                                await typeText(" ");
+                                
+                                // WIN CONDITION: Return to terminal mode and ask original question
+                                currentMode = 'terminal';
+                                setTimeout(() => { typeText("System rebooting... Do you want to read Claudio's information available on file? (yes/no)"); }, 1500);
 
-                } else if (command === 'whoami') {
-                    await typeText("GUEST_USER_994. ACCESS LEVEL: RESTRICTED.");
-                    setTimeout(() => { typeText(currentPromptText); }, 400);
+                            } else {
+                                await typeText("You don't have a keycard! The door remains firmly locked.");
+                            }
+                        } else {
+                            await typeText("Invalid command. Try 'south' or 'use card'.");
+                        }
 
-                } else if (command === 'sudo') {
-                    await typeText("Nice try. This incident will be reported.");
-                    setTimeout(() => { typeText(currentPromptText); }, 400);
-
-                } else {
-                    await typeText("Command Not recognized. Type 'help' for options.");
-                    setTimeout(() => { typeText(currentPromptText); }, 400);
+                    } else if (gameRoom === 'desk') {
+                        if (command === 'west' || command === 'w') {
+                            gameRoom = 'intro';
+                            await typeText("You are back in the center of the server room. Door to the NORTH, terminal to the EAST.");
+                        } else if (command === 'take card' || command === 'take' || command === 'get card') {
+                            if (!hasKeycard) {
+                                hasKeycard = true;
+                                await typeText("You pocket the RED KEYCARD.");
+                            } else {
+                                await typeText("You already took the card. There is nothing else here.");
+                            }
+                        } else {
+                            await typeText("Invalid command. Try 'west' or 'take card'.");
+                        }
+                    }
                 }
             }
         });
