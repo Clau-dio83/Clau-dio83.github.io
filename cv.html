@@ -16,73 +16,69 @@
             width: 100vw;
             height: 100vh;
             background-color: #050505;
-            overflow: hidden;
+            overflow: hidden; /* Prevent scrolling on the main page */
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: 'Courier New', Courier, monospace;
         }
 
-        /* THE FIX: A container that locks the aspect ratio. 
-           We assume the monitor image is roughly 4:3 or 16:9. 
-           We use 'aspect-ratio' to keep it scaling proportionally as one unit.
-        */
+        /* The scaling wrapper forces the monitor to be massive */
         .scaling-wrapper {
             position: relative;
-            /* Adjust this width to make the whole unit larger or smaller on screen */
-            width: 95vw; 
-            max-width: 1600px;
-            /* Adjust this aspect ratio to match your specific image's natural dimensions */
+            /* Use vmax to ensure it scales based on the largest dimension of the screen */
+            width: 130vmax; 
+            max-width: 2500px; /* Allow it to get very large */
+            /* This ratio is crucial. It keeps the image and the text box locked together */
             aspect-ratio: 16 / 10; 
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
+        /* The monitor image */
         .monitor-img {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Keeps the monitor wholly visible inside the wrapper */
+            object-fit: contain; 
             position: absolute;
             top: 0;
             left: 0;
             z-index: 1;
         }
 
-        /* The interactive area, now relative to the stable wrapper.
-           Because the wrapper scales uniformly, these percentages will always
-           hit the same spot on the image.
+        /* The text area. 
+           We are expanding these coordinates to cover the inner brown bevel.
+           It is now a perfect rectangle with very slight rounded corners.
         */
         .screen-glass-area {
             position: absolute;
             z-index: 10;
             
-            /* UPDATED: Tuned coordinates to fit inside the inner bevel */
-            top: 13%;      
-            left: 9%;      
-            width: 58%;  
-            height: 73%;   
+            /* UPDATED COORDINATES: Expanded outward */
+            top: 10.5%;      
+            left: 7%;      
+            width: 61.5%;  
+            height: 77.5%;   
             
-            border-radius: 4%; 
+            /* Reduced border radius so it looks more like a strict rectangle */
+            border-radius: 2%; 
             overflow: hidden; 
             
-            /* UPDATED: Darker, almost opaque background as requested */
-            background-color: rgba(5, 5, 5, 0.90); 
+            /* Dark background to hide the screen underneath */
+            background-color: rgba(10, 10, 10, 0.95); 
         }
 
         .terminal-content {
-            padding: 2.5vw; 
+            padding: 3vw; 
             width: 100%;
             height: 100%;
             box-sizing: border-box;
-            overflow-y: auto;
+            overflow-y: auto; /* Allow scrolling inside the text box */
             color: #33ff00;
             
-            /* UPDATED: Font size scales with the wrapper width.
-               1.2cqi means 1.2% of the container's inline size.
-               This ensures text shrinks/grows perfectly with the monitor frame.
-            */
-            font-size: clamp(14px, 1.3vw, 24px); 
+            /* Fixed font size as requested */
+            font-size: 18px; 
             line-height: 1.3;
             text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000;
         }
@@ -107,25 +103,17 @@
             pointer-events: none;
             z-index: 20;
         }
-        
-        .crt-vignette {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.5) 100%);
-            pointer-events: none;
-            z-index: 21;
-        }
 
         pre { 
-            margin: 0 0 1.5vw 0; 
+            margin: 0 0 20px 0; 
             font-family: inherit; 
             white-space: pre-wrap; 
             word-wrap: break-word;
         }
         
         p { 
-            margin: 0.8vw 0; 
-            min-height: 1.2em; 
+            margin: 10px 0; 
+            min-height: 20px; 
             word-break: break-all; 
             overflow-wrap: break-word;
         }
@@ -133,7 +121,7 @@
         .input-line { 
             display: none; 
             align-items: center; 
-            margin-top: 1vw; 
+            margin-top: 10px; 
             width: 100%;
         }
 
@@ -145,7 +133,7 @@
             font-size: inherit;
             outline: none;
             width: 100%;
-            margin-left: 0.5vw;
+            margin-left: 10px;
             text-shadow: 0 0 3px #33ff00;
             caret-color: #33ff00;
             box-sizing: border-box;
@@ -160,7 +148,6 @@
         <div class="screen-glass-area">
             <canvas id="matrix-canvas"></canvas>
             <div class="crt-scanlines"></div>
-            <div class="crt-vignette"></div>
 
             <div class="terminal-content" id="terminal-content">
                 <pre id="ascii-header"></pre>
