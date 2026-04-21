@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claudio's Terminal</title>
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
+    <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
     <style>
         /* Base page styling */
         body, html {
@@ -11,71 +15,89 @@
             padding: 0;
             width: 100vw;
             height: 100vh;
-            background-color: #050505; /* Very dark grey, almost black */
+            background-color: #050505;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        /* The container holding the monitor image */
-        .monitor-wrapper {
+        /* Questo container mantiene sempre le proporzioni dell'immagine 
+           (circa 1.34:1 in base alla tua foto).
+        */
+        .scaling-wrapper {
             position: relative;
-            /* Force the width to be large, but not wider than the screen */
             width: 95vw; 
-            /* Let the height be determined by the image's aspect ratio */
-            height: auto; 
-            /* Ensure it doesn't get ridiculously huge on very large screens */
             max-width: 1600px; 
+            aspect-ratio: 1.34 / 1; /* Le proporzioni ESATTE dell'immagine */
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* The monitor image itself */
         .monitor-img {
             width: 100%;
-            height: auto;
-            display: block; /* Removes tiny space below inline images */
-            z-index: 1;
-        }
-
-        /* The interactive area mapped to the screen */
-        .screen-glass-area {
+            height: 100%;
+            object-fit: cover; 
             position: absolute;
-            z-index: 10;
-            
-            /* Coordinates relative to the monitor image container */
-            top: 10%;      
-            left: 7%;      
-            width: 61.5%;  
-            height: 77%;   
-            
-            border-radius: 5%; 
-            overflow: hidden; 
-            background-color: rgba(5, 10, 5, 0.4); 
+            top: 0;
+            left: 0;
+            z-index: 1;
+            /* Leggermente scurita l'immagine per far risaltare il verde */
+            filter: brightness(0.9); 
         }
 
-        /* The actual container where text is printed */
+        /* IL TRUCCO DELLA GRIGLIA: 
+           Creiamo una griglia 100x100 sopra l'immagine.
+           Questo ci permette di posizionare elementi con precisione chirurgica.
+        */
+        .grid-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: repeat(100, 1fr);
+            grid-template-rows: repeat(100, 1fr);
+        }
+
+        /* Posizioniamo l'area del testo usando le righe e le colonne della griglia.
+           Queste coordinate definiscono ESATTAMENTE l'interno della cornice marrone.
+        */
+        .screen-glass-area {
+            /* Inizia colonna 7, finisce colonna 72 */
+            grid-column: 7 / 72; 
+            /* Inizia riga 10, finisce riga 92 */
+            grid-row: 10 / 92;   
+            
+            position: relative;
+            border-radius: 12px; 
+            overflow: hidden; 
+            
+            /* LO SFONDO: Quasi nero e totalmente opaco per coprire lo schermo dietro */
+            background-color: #080a08; 
+            
+            /* Leggera ombra interna per dare profondità alla cornice marrone */
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
         .terminal-content {
-            padding: 2.5vw; /* Responsive padding */
+            padding: 2.5vw; 
             width: 100%;
             height: 100%;
             box-sizing: border-box;
-            overflow-y: auto;
+            overflow-y: auto; 
             color: #33ff00;
-            font-family: 'Courier New', Courier, monospace;
-            /* Increased responsive font size, with a fallback minimum */
-            font-size: max(16px, 1.6vw); 
+            
+            /* IL TESTO: Fisso a 18px come da tua richiesta originale */
+            font-size: 18px; 
             line-height: 1.3;
             text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000;
         }
 
-        /* Hide scrollbars */
         .terminal-content::-webkit-scrollbar { display: none; }
         .terminal-content { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* The Matrix Canvas */
         #matrix-canvas {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -85,7 +107,6 @@
             transition: opacity 1s ease;
         }
 
-        /* CRT Scanlines overlaid on the text */
         .crt-scanlines {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -94,26 +115,17 @@
             pointer-events: none;
             z-index: 20;
         }
-        
-        /* CRT Curvature Shadow */
-        .crt-vignette {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.5) 100%);
-            pointer-events: none;
-            z-index: 21;
-        }
 
         pre { 
-            margin: 0 0 1vw 0; 
+            margin: 0 0 20px 0; 
             font-family: inherit; 
             white-space: pre-wrap; 
             word-wrap: break-word;
         }
         
         p { 
-            margin: 0.5vw 0; 
-            min-height: 1.2em; 
+            margin: 10px 0; 
+            min-height: 20px; 
             word-break: break-all; 
             overflow-wrap: break-word;
         }
@@ -121,7 +133,7 @@
         .input-line { 
             display: none; 
             align-items: center; 
-            margin-top: 1vw; 
+            margin-top: 10px; 
             width: 100%;
         }
 
@@ -133,7 +145,7 @@
             font-size: inherit;
             outline: none;
             width: 100%;
-            margin-left: 0.5vw;
+            margin-left: 10px;
             text-shadow: 0 0 3px #33ff00;
             caret-color: #33ff00;
             box-sizing: border-box;
@@ -142,27 +154,28 @@
 </head>
 <body>
 
-    <div class="monitor-wrapper">
+    <div class="scaling-wrapper">
         <img src="monitor3-6.webp" alt="Retro Monitor" class="monitor-img" id="monitor-img">
         
-        <div class="screen-glass-area" id="screen-glass">
-            <canvas id="matrix-canvas"></canvas>
-            <div class="crt-scanlines"></div>
-            <div class="crt-vignette"></div>
+        <div class="grid-overlay">
+            <div class="screen-glass-area">
+                <canvas id="matrix-canvas"></canvas>
+                <div class="crt-scanlines"></div>
 
-            <div class="terminal-content" id="terminal-content">
-                <pre id="ascii-header"></pre>
-                <div id="history"></div>
-                <div class="input-line" id="input-container">
-                    <span>></span>
-                    <input type="text" id="command-input" autocomplete="off" spellcheck="false">
+                <div class="terminal-content" id="terminal-content">
+                    <pre id="ascii-header"></pre>
+                    <div id="history"></div>
+                    <div class="input-line" id="input-container">
+                        <span>></span>
+                        <input type="text" id="command-input" autocomplete="off" spellcheck="false">
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- JS LOGIC REMAINS IDENTICAL ---
+        // LA LOGICA JAVASCRIPT E' IDENTICA ALLA TUA VERSIONE PRECEDENTE
 
         const inputField = document.getElementById('command-input');
         const historyDiv = document.getElementById('history');
@@ -171,39 +184,6 @@
         const terminalContent = document.getElementById('terminal-content');
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
-        const monitorImg = document.getElementById('monitor-img');
-        const screenGlass = document.getElementById('screen-glass');
-
-        // Dynamic resizing calculation for the screen overlay
-        // This ensures the text area stays pinned to the image even if window resizes
-        function resizeScreenArea() {
-            // Get the actual rendered dimensions of the image
-            const imgRect = monitorImg.getBoundingClientRect();
-            
-            // Map the percentages to the actual image size, not the window
-            screenGlass.style.width = (imgRect.width * 0.615) + 'px';
-            screenGlass.style.height = (imgRect.height * 0.77) + 'px';
-            
-            // Calculate offsets based on where the image is centered
-            const offsetX = imgRect.left + (imgRect.width * 0.07);
-            const offsetY = imgRect.top + (imgRect.height * 0.10);
-            
-            screenGlass.style.left = offsetX + 'px';
-            screenGlass.style.top = offsetY + 'px';
-
-            if(canvas.style.display === 'block') {
-                cancelAnimationFrame(window.matrixAnimation);
-                initMatrix();
-                drawMatrix();
-            }
-        }
-
-        // Run resize logic when image loads and on window resize
-        monitorImg.addEventListener('load', resizeScreenArea);
-        window.addEventListener('resize', resizeScreenArea);
-        // Initial call in case image is already cached
-        resizeScreenArea();
-
 
         // Matrix Rain Setup
         const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*パピプペポ".split("");
@@ -296,9 +276,6 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         }
 
         window.onload = async () => {
-            // Force layout calculation before starting animations
-            resizeScreenArea();
-            
             await drawAscii();
             for (const line of introSequence) {
                 await typeText(line);
@@ -306,6 +283,14 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             }
             await typeText(currentPromptText);
         };
+
+        window.addEventListener('resize', () => {
+            if(canvas.style.display === 'block') {
+                cancelAnimationFrame(window.matrixAnimation);
+                initMatrix();
+                drawMatrix();
+            }
+        });
 
         inputField.addEventListener('keydown', async function(event) {
             if (event.key === 'Enter' && inputContainer.style.display !== 'none') {
