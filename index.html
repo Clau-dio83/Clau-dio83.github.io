@@ -23,7 +23,6 @@
             font-family: 'Courier New', Courier, monospace;
         }
 
-        /* The scaling wrapper */
         .terminal-wrapper {
             position: relative;
             width: 90vw; 
@@ -34,7 +33,6 @@
             align-items: center;
         }
 
-        /* The image of the monitor frame */
         .monitor-frame-image {
             position: absolute;
             top: 0;
@@ -45,7 +43,6 @@
             pointer-events: none; 
         }
 
-        /* The glowing glass screen */
         .screen {
             position: absolute; 
             background-color: #080a08; 
@@ -62,7 +59,6 @@
             z-index: 5; 
         }
 
-        /* Matrix Canvas Layer */
         #matrix-canvas {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -72,7 +68,6 @@
             transition: opacity 1s ease; 
         }
 
-        /* CRT Curve Shadow */
         .crt-vignette {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -81,7 +76,6 @@
             z-index: 101;
         }
 
-        /* CRT Scanlines */
         .crt-effect {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -91,13 +85,11 @@
             z-index: 100;
         }
 
-        /* Phosphor Pulse Animation */
         @keyframes phosphorPulse {
             0%, 100% { text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000; opacity: 0.95; }
             50% { text-shadow: 0 0 5px #33ff00, 0 0 12px #20a000; opacity: 1; }
         }
 
-        /* The container where the text actually lives */
         .terminal-container {
             padding: 40px 40px 30px 50px; 
             position: relative;
@@ -115,7 +107,6 @@
         p { margin: 10px 0; min-height: 20px; }
         .input-line { display: none; align-items: center; margin-top: 10px; }
 
-        /* Retro Block Cursor */
         input[type="text"] {
             background: transparent;
             border: none;
@@ -140,7 +131,6 @@
 
         <div class="screen">
             <canvas id="matrix-canvas"></canvas>
-            
             <div class="vignette crt-vignette"></div> 
             <div class="crt-effect"></div>
             
@@ -185,14 +175,11 @@
         function drawMatrix() {
             ctx.fillStyle = "rgba(5, 5, 5, 0.05)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
             ctx.fillStyle = "#33ff00"; 
             ctx.font = matrixFontSize + "px 'Courier New'";
-
             for (let i = 0; i < drops.length; i++) {
                 const text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
                 ctx.fillText(text, i * matrixFontSize, drops[i] * matrixFontSize);
-
                 if (drops[i] * matrixFontSize > canvas.height && Math.random() > 0.975) {
                     drops[i] = 0;
                 }
@@ -226,11 +213,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             " " 
         ];
 
-        // --- STATE MANAGEMENT VARIABLES ---
-        let currentMode = 'terminal'; // Can be 'terminal' or 'game'
-        let gameRoom = 'intro';       // Tracks location in the text adventure
-        let hasKeycard = false;       // Tracks inventory
-        
+        let currentMode = 'terminal'; 
         let currentPromptText = "Do you want to read Claudio's information available on file? (yes/no)";
         let noCount = 0; 
         
@@ -277,21 +260,159 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             if(canvas.style.display === 'block') initMatrix();
         });
 
-        // The Main Interaction Logic
+
+        // ==========================================
+        // TEXT ADVENTURE ENGINE
+        // ==========================================
+        let inventory = [];
+        let currentRoom = 'cell';
+
+        const map = {
+            'cell': {
+                name: "Holding Cell",
+                desc: "A damp, concrete cell. A flickering neon sign outside casts shadows through the bars. The door to the NORTH is slightly ajar.",
+                exits: { 'north': 'corridor', 'n': 'corridor' },
+                items: []
+            },
+            'corridor': {
+                name: "Main Corridor",
+                desc: "A long, dark hallway. To the WEST is a Security Kiosk. To the EAST is the Server Room. The exit gate is NORTH. Your cell is SOUTH.",
+                exits: { 'south': 'cell', 's': 'cell', 'west': 'kiosk', 'w': 'kiosk', 'east': 'server', 'e': 'server', 'north': 'gate', 'n': 'gate' },
+                items: []
+            },
+            'kiosk': {
+                name: "Security Kiosk",
+                desc: "A glass booth. The guard is missing, leaving behind a half-eaten donut and a mess of papers. The corridor is EAST.",
+                exits: { 'east': 'corridor', 'e': 'corridor' },
+                items: ['badge']
+            },
+            'server': {
+                name: "Server Room",
+                desc: "Towering data banks hum loudly. The air is freezing.",
+                exits: { 'west': 'corridor', 'w': 'corridor' },
+                items: ['usb_drive'],
+                locked: true,
+                key: 'badge',
+                lockedMsg: "The server room door is locked. A scanner flashes: 'SECURITY BADGE REQUIRED'."
+            },
+            'gate': {
+                name: "Facility Exit Gate",
+                desc: "A massive steel shutter blocks your escape. A terminal awaits a physical override.",
+                exits: { 'south': 'corridor', 's': 'corridor' },
+                items: [],
+                locked: true,
+                key: 'usb_drive',
+                lockedMsg: "The heavy gate is sealed. A terminal flashes: 'INSERT OVERRIDE USB'."
+            }
+        };
+
+        async function handleGameCommand(cmd) {
+            let room = map[currentRoom];
+
+            if (cmd === 'quit' || cmd === 'exit') {
+                currentMode = 'terminal';
+                historyDiv.innerHTML = ''; 
+                await typeText("Aborting simulation...");
+                await typeText(currentPromptText);
+                return;
+            }
+
+            if (cmd === 'look' || cmd === 'l') {
+                await typeText(`[${room.name}]`);
+                await typeText(room.desc);
+                if (room.items.length > 0) {
+                    await typeText(`You see a [${room.items.join(', ')}] here.`);
+                }
+                return;
+            }
+
+            if (cmd === 'inv' || cmd === 'inventory' || cmd === 'i') {
+                if (inventory.length === 0) {
+                    await typeText("You are not carrying anything.");
+                } else {
+                    await typeText(`Inventory: ${inventory.join(', ')}`);
+                }
+                return;
+            }
+
+            if (cmd === 'help') {
+                await typeText("COMMANDS: north (n), south (s), east (e), west (w), look (l), inv (i), take [item], quit.");
+                return;
+            }
+
+            // Handle "take [item]"
+            if (cmd.startsWith('take ') || cmd.startsWith('get ')) {
+                let item = cmd.split(' ')[1];
+                if (room.items.includes(item)) {
+                    inventory.push(item);
+                    room.items = room.items.filter(i => i !== item);
+                    await typeText(`You picked up the ${item}.`);
+                } else {
+                    await typeText(`There is no ${item} here.`);
+                }
+                return;
+            }
+
+            // Movement
+            if (['north', 'n', 'south', 's', 'east', 'e', 'west', 'w'].includes(cmd)) {
+                if (room.exits[cmd]) {
+                    let nextRoomKey = room.exits[cmd];
+                    let nextRoom = map[nextRoomKey];
+
+                    // Check if next room is locked
+                    if (nextRoom.locked && !inventory.includes(nextRoom.key)) {
+                        await typeText(nextRoom.lockedMsg);
+                    } else {
+                        if (nextRoom.locked && inventory.includes(nextRoom.key)) {
+                            await typeText(`[Used ${nextRoom.key}] Access granted.`);
+                            nextRoom.locked = false; // Unlock it permanently
+                        }
+                        
+                        currentRoom = nextRoomKey;
+                        
+                        // WIN CONDITION: Entering the gate room with the USB
+                        if (currentRoom === 'gate') {
+                            await typeText("You insert the USB_DRIVE into the terminal...");
+                            await typeText("ACCESS ACCEPTED. The massive steel shutter grinds open!");
+                            await typeText("You step out into the neon-lit city streets. You are free.");
+                            await typeText("===================================");
+                            await typeText(">>> SIMULATION COMPLETE <<<");
+                            
+                            currentMode = 'terminal';
+                            setTimeout(() => { typeText("System rebooting... Do you want to read Claudio's information available on file? (yes/no)"); }, 3000);
+                        } else {
+                            // Normal movement
+                            await typeText(`[${map[currentRoom].name}]`);
+                            await typeText(map[currentRoom].desc);
+                            if (map[currentRoom].items.length > 0) {
+                                await typeText(`You see a [${map[currentRoom].items.join(', ')}] here.`);
+                            }
+                        }
+                    }
+                } else {
+                    await typeText("You can't go that way.");
+                }
+                return;
+            }
+
+            await typeText("I don't understand that command. Type 'help' for options.");
+        }
+
+
+        // ==========================================
+        // MAIN INPUT LISTENER
+        // ==========================================
         inputField.addEventListener('keydown', async function(event) {
             
-            // --- AUDIO ACTIVE FOR REGULAR KEYPRESSES ---
-            if(event.key !== 'Enter') { 
-                new Audio('keypress.mp3').play(); 
-            }
+            // AUDIO ON FOR ALL KEYPRESSES
+            if(event.key !== 'Enter') { new Audio('keypress.mp3').play(); }
 
             if (event.key === 'Enter' && inputContainer.style.display !== 'none') {
                 
-                // --- AUDIO ACTIVE FOR ENTER KEY ---
+                // AUDIO ON FOR ENTER KEY
                 new Audio('keypress.mp3').play();
 
                 const command = inputField.value.trim().toLowerCase();
-                
                 const userEcho = document.createElement('p');
                 userEcho.textContent = "> " + inputField.value;
                 historyDiv.appendChild(userEcho);
@@ -300,10 +421,11 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                 inputField.style.setProperty('--char-count', 0);
                 scrollToBottom();
 
-                // ==========================================
-                // MODE 1: STANDARD TERMINAL LOGIC
-                // ==========================================
-                if (currentMode === 'terminal') {
+                // DIVERGE BASED ON STATE
+                if (currentMode === 'game') {
+                    await handleGameCommand(command);
+                } 
+                else if (currentMode === 'terminal') {
                     
                     if (command === 'yes' || command === 'y') {
                         await typeText("Entering the matrix...");
@@ -347,92 +469,20 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                         await typeText("Nice try. This incident will be reported.");
                         setTimeout(() => { typeText(currentPromptText); }, 400);
 
-                    // --- TRIGGER ADVENTURE GAME ---
                     } else if (command === 'play') {
                         currentMode = 'game';
-                        gameRoom = 'intro';
-                        hasKeycard = false;
+                        currentRoom = 'cell';
+                        inventory = []; // Reset game state
                         historyDiv.innerHTML = ''; 
-                        await typeText("LOADING MODULE: SECTOR 7G ESCAPE...");
+                        await typeText("LOADING MODULE: PROJECT NEON...");
                         await typeText("===================================");
-                        await typeText("You wake up on the cold floor of a dimly lit server room. The rhythmic hum of cooling fans fills the air.");
-                        await typeText("There is a heavy steel blast door to the NORTH.");
-                        await typeText("To the EAST, a retro computer terminal flickers on a desk.");
-                        await typeText("Type 'north' or 'east' to move. Type 'quit' to exit the simulation.");
+                        await typeText("[Holding Cell]");
+                        await typeText(map['cell'].desc);
+                        await typeText("Type 'help' for game commands or 'quit' to exit.");
 
                     } else {
                         await typeText("Command Not recognized. Type 'help' for options.");
                         setTimeout(() => { typeText(currentPromptText); }, 400);
-                    }
-
-                // ==========================================
-                // MODE 2: TEXT ADVENTURE LOGIC
-                // ==========================================
-                } else if (currentMode === 'game') {
-                    
-                    if (command === 'quit' || command === 'exit') {
-                        currentMode = 'terminal';
-                        historyDiv.innerHTML = ''; 
-                        await typeText("Exiting simulation module...");
-                        await typeText(currentPromptText);
-                        return;
-                    }
-
-                    if (gameRoom === 'intro') {
-                        if (command === 'north' || command === 'n') {
-                            gameRoom = 'door';
-                            await typeText("You stand before the massive blast door. Beside it is a card reader glowing with an angry red light.");
-                            await typeText("Type 'south' to go back, or 'use card' if you have one.");
-                        } else if (command === 'east' || command === 'e') {
-                            gameRoom = 'desk';
-                            if (!hasKeycard) {
-                                await typeText("You approach the flickering terminal. Sitting beside the keyboard is a RED KEYCARD.");
-                                await typeText("Type 'west' to go back, or 'take card' to grab it.");
-                            } else {
-                                await typeText("You approach the flickering terminal. The desk is empty.");
-                                await typeText("Type 'west' to go back.");
-                            }
-                        } else {
-                            await typeText("Invalid command. Try 'north', 'east', or 'quit'.");
-                        }
-
-                    } else if (gameRoom === 'door') {
-                        if (command === 'south' || command === 's') {
-                            gameRoom = 'intro';
-                            await typeText("You are back in the center of the server room. Door to the NORTH, terminal to the EAST.");
-                        } else if (command === 'use card' || command === 'use' || command === 'swipe card') {
-                            if (hasKeycard) {
-                                await typeText("You swipe the RED KEYCARD. The reader beeps affirmatively and the light turns green!");
-                                await typeText("The heavy blast door grinds open, revealing a bright corridor. You step out into the light...");
-                                await typeText(" ");
-                                await typeText(">>> ESCAPE SUCCESSFUL <<<");
-                                await typeText(" ");
-                                
-                                // WIN CONDITION
-                                currentMode = 'terminal';
-                                setTimeout(() => { typeText("System rebooting... Do you want to read Claudio's information available on file? (yes/no)"); }, 1500);
-
-                            } else {
-                                await typeText("You don't have a keycard! The door remains firmly locked.");
-                            }
-                        } else {
-                            await typeText("Invalid command. Try 'south' or 'use card'.");
-                        }
-
-                    } else if (gameRoom === 'desk') {
-                        if (command === 'west' || command === 'w') {
-                            gameRoom = 'intro';
-                            await typeText("You are back in the center of the server room. Door to the NORTH, terminal to the EAST.");
-                        } else if (command === 'take card' || command === 'take' || command === 'get card') {
-                            if (!hasKeycard) {
-                                hasKeycard = true;
-                                await typeText("You pocket the RED KEYCARD.");
-                            } else {
-                                await typeText("You already took the card. There is nothing else here.");
-                            }
-                        } else {
-                            await typeText("Invalid command. Try 'west' or 'take card'.");
-                        }
                     }
                 }
             }
