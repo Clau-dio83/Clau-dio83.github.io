@@ -9,74 +9,87 @@
     <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
     <link rel="manifest" href="favicon/site.webmanifest">
     <style>
-        /* Base page styling - Force fullscreen */
+        /* Base page styling */
         body, html {
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            background-color: #050505 !important; 
-            overflow: hidden !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #050505;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        /* The container holding the monitor image */
-        .monitor-wrapper {
-            position: relative !important;
-            /* Force the width to be large */
-            width: 95vw !important; 
-            height: auto !important; 
-            max-width: 1800px !important; 
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
+        /* THE FIX: A container that locks the aspect ratio. 
+           We assume the monitor image is roughly 4:3 or 16:9. 
+           We use 'aspect-ratio' to keep it scaling proportionally as one unit.
+        */
+        .scaling-wrapper {
+            position: relative;
+            /* Adjust this width to make the whole unit larger or smaller on screen */
+            width: 95vw; 
+            max-width: 1600px;
+            /* Adjust this aspect ratio to match your specific image's natural dimensions */
+            aspect-ratio: 16 / 10; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* The monitor image itself */
         .monitor-img {
-            width: 100% !important;
-            height: auto !important;
-            display: block !important;
-            z-index: 1 !important;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Keeps the monitor wholly visible inside the wrapper */
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
 
-        /* The interactive area mapped to the screen */
+        /* The interactive area, now relative to the stable wrapper.
+           Because the wrapper scales uniformly, these percentages will always
+           hit the same spot on the image.
+        */
         .screen-glass-area {
-            position: absolute !important;
-            z-index: 10 !important;
+            position: absolute;
+            z-index: 10;
             
-            /* Coordinates mapped to monitor3-6.webp */
-            top: 10% !important;      
-            left: 7% !important;      
-            width: 61.5% !important;  
-            height: 77% !important;   
+            /* UPDATED: Tuned coordinates to fit inside the inner bevel */
+            top: 13%;      
+            left: 9%;      
+            width: 58%;  
+            height: 73%;   
             
-            border-radius: 5% !important; 
-            overflow: hidden !important; 
-            background-color: rgba(5, 10, 5, 0.4) !important; 
+            border-radius: 4%; 
+            overflow: hidden; 
+            
+            /* UPDATED: Darker, almost opaque background as requested */
+            background-color: rgba(5, 5, 5, 0.90); 
         }
 
-        /* The actual container where text is printed */
         .terminal-content {
-            padding: 2.5vw !important;
-            width: 100% !important;
-            height: 100% !important;
-            box-sizing: border-box !important;
-            overflow-y: auto !important;
-            color: #33ff00 !important;
-            font-family: 'Courier New', Courier, monospace !important;
-            font-size: max(16px, 1.8vw) !important; /* Slightly larger text */
-            line-height: 1.3 !important;
-            text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000 !important;
+            padding: 2.5vw; 
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            overflow-y: auto;
+            color: #33ff00;
+            
+            /* UPDATED: Font size scales with the wrapper width.
+               1.2cqi means 1.2% of the container's inline size.
+               This ensures text shrinks/grows perfectly with the monitor frame.
+            */
+            font-size: clamp(14px, 1.3vw, 24px); 
+            line-height: 1.3;
+            text-shadow: 0 0 3px #33ff00, 0 0 8px #1a8000;
         }
 
-        /* Hide scrollbars */
         .terminal-content::-webkit-scrollbar { display: none; }
         .terminal-content { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* The Matrix Canvas */
         #matrix-canvas {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -86,7 +99,6 @@
             transition: opacity 1s ease;
         }
 
-        /* CRT Scanlines overlaid on the text */
         .crt-scanlines {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -96,7 +108,6 @@
             z-index: 20;
         }
         
-        /* CRT Curvature Shadow */
         .crt-vignette {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -106,14 +117,14 @@
         }
 
         pre { 
-            margin: 0 0 1vw 0 !important; 
+            margin: 0 0 1.5vw 0; 
             font-family: inherit; 
             white-space: pre-wrap; 
             word-wrap: break-word;
         }
         
         p { 
-            margin: 0.5vw 0 !important; 
+            margin: 0.8vw 0; 
             min-height: 1.2em; 
             word-break: break-all; 
             overflow-wrap: break-word;
@@ -122,16 +133,16 @@
         .input-line { 
             display: none; 
             align-items: center; 
-            margin-top: 1vw !important; 
+            margin-top: 1vw; 
             width: 100%;
         }
 
         input[type="text"] {
             background: transparent;
             border: none;
-            color: #33ff00 !important;
-            font-family: 'Courier New', Courier, monospace !important;
-            font-size: inherit !important;
+            color: #33ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: inherit;
             outline: none;
             width: 100%;
             margin-left: 0.5vw;
@@ -143,21 +154,21 @@
 </head>
 <body>
 
-    <div class="monitor-cover">
+    <div class="scaling-wrapper">
         <img src="monitor3-6.webp" alt="Retro Monitor" class="monitor-img" id="monitor-img">
-    </div>
-    
-    <div class="screen-glass-area">
-        <canvas id="matrix-canvas"></canvas>
-        <div class="crt-scanlines"></div>
-        <div class="crt-vignette"></div>
+        
+        <div class="screen-glass-area">
+            <canvas id="matrix-canvas"></canvas>
+            <div class="crt-scanlines"></div>
+            <div class="crt-vignette"></div>
 
-        <div class="terminal-content" id="terminal-content">
-            <pre id="ascii-header"></pre>
-            <div id="history"></div>
-            <div class="input-line" id="input-container">
-                <span>></span>
-                <input type="text" id="command-input" autocomplete="off" spellcheck="false">
+            <div class="terminal-content" id="terminal-content">
+                <pre id="ascii-header"></pre>
+                <div id="history"></div>
+                <div class="input-line" id="input-container">
+                    <span>></span>
+                    <input type="text" id="command-input" autocomplete="off" spellcheck="false">
+                </div>
             </div>
         </div>
     </div>
@@ -170,7 +181,6 @@
         const terminalContent = document.getElementById('terminal-content');
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
-        const monitorImg = document.getElementById('monitor-img');
 
         // Matrix Rain Setup
         const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*パピプペポ".split("");
@@ -308,7 +318,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                     if (noCount === 1) {
                         currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
                     } else {
-                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to reconsider your decision and access the information instead?"; // Updated sentence
+                        currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to reconsider your decision and access the information instead?";
                     }
 
                     setTimeout(() => { typeText(currentPromptText); }, 400);
