@@ -228,15 +228,27 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             await new Promise(resolve => setTimeout(resolve, 500));
         }
 
+        // ==========================================
+        // SYSTEM TYPING EFFECT WITH AUDIO
+        // ==========================================
         async function typeText(text) {
             inputContainer.style.display = 'none'; 
             const p = document.createElement('p');
             historyDiv.appendChild(p);
             
+            // Start the system typing sound
+            const sysAudio = new Audio('typing-mechanical-keyboard.mp3');
+            sysAudio.loop = true; 
+            sysAudio.play().catch(() => {}); // Catch prevents errors if browser blocks autoplay on load
+            
             for (let i = 0; i < text.length; i++) {
                 p.textContent += text.charAt(i);
                 await new Promise(resolve => setTimeout(resolve, typingSpeed));
             }
+            
+            // Stop the system typing sound
+            sysAudio.pause();
+            sysAudio.currentTime = 0; 
             
             inputContainer.style.display = 'flex';
             inputField.focus();
@@ -481,7 +493,6 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                             
                             currentMode = 'terminal';
                             
-                            // Adjusting the prompt text for winning the game
                             currentPromptText = "USB_DRIVE detected. Decrypting contents... Do you want to read Claudio's information available on file? (yes/no)";
                             
                             setTimeout(() => { typeText(currentPromptText); }, 4000);
@@ -507,7 +518,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         // ==========================================
         inputField.addEventListener('keydown', async function(event) {
             
-            // AUDIO ON FOR ALL KEYPRESSES
+            // AUDIO ON FOR USER TYPING
             if(event.key !== 'Enter') { 
                 new Audio('keypress.mp3').play(); 
             }
