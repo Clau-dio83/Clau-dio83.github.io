@@ -214,7 +214,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         ];
 
         let currentMode = 'terminal'; 
-        let currentPromptText = "Do you want to read Claudio's information available on file? (help to display commands)";
+        let currentPromptText = "Do you want to read Claudio's information available on file? (yes/no)";
         let noCount = 0; 
         
         const typingSpeed = 30; 
@@ -262,71 +262,142 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
 
 
         // ==========================================
-        // TEXT ADVENTURE ENGINE
+        // TEXT ADVENTURE ENGINE: PROJECT NEON
         // ==========================================
         let inventory = [];
         let currentRoom = 'cell';
 
         const map = {
             'cell': {
-                name: "Holding Cell",
-                desc: "A damp, concrete cell. A flickering neon sign outside casts shadows through the bars. The door to the NORTH is slightly ajar.",
-                exits: { 'north': 'corridor', 'n': 'corridor' },
-                items: []
+                name: "Holding Cell 404",
+                desc: "A cramped, sterile box. A neon billboard outside casts shadows through a barred window. The door to the NORTH is open.",
+                exits: { 'north': 'detention', 'n': 'detention' },
+                items: [],
+                details: { 'window': "It's raining outside. The megacity looks like a glowing circuit board.", 'door': "The lock mechanism is busted. Lucky you." }
             },
-            'corridor': {
-                name: "Main Corridor",
-                desc: "A long, dark hallway. To the WEST is a Security Kiosk. To the EAST is the Server Room. The exit gate is NORTH. Your cell is SOUTH.",
-                exits: { 'south': 'cell', 's': 'cell', 'west': 'kiosk', 'w': 'kiosk', 'east': 'server', 'e': 'server', 'north': 'gate', 'n': 'gate' },
-                items: []
+            'detention': {
+                name: "Detention Block",
+                desc: "A long row of empty cells. The air smells of ozone. Corridors branch out NORTH, EAST, and WEST. Your cell is SOUTH.",
+                exits: { 'south': 'cell', 's': 'cell', 'north': 'corridor_a', 'n': 'corridor_a', 'east': 'evidence', 'e': 'evidence', 'west': 'interrogation', 'w': 'interrogation' },
+                items: [],
+                details: {}
             },
-            'kiosk': {
-                name: "Security Kiosk",
-                desc: "A glass booth. The guard is missing, leaving behind a half-eaten donut and a mess of papers. The corridor is EAST.",
-                exits: { 'east': 'corridor', 'e': 'corridor' },
-                items: ['badge']
+            'interrogation': {
+                name: "Interrogation Room",
+                desc: "A metal table, two chairs, and a broken camera. Someone left in a hurry.",
+                exits: { 'east': 'detention', 'e': 'detention' },
+                items: ['silver_key'],
+                details: { 'table': "There are deep scratches in the metal.", 'camera': "The lens is smashed to pieces." }
+            },
+            'evidence': {
+                name: "Evidence Locker",
+                desc: "Rows of wire mesh lockers. Most have been looted.",
+                exits: { 'west': 'detention', 'w': 'detention' },
+                items: ['datapad'],
+                locked: true,
+                key: 'silver_key',
+                lockedMsg: "A heavy steel padlock secures the mesh gate. It requires a physical 'silver_key'.",
+                details: { 'datapad': "A cracked tablet. It contains mostly corrupted data, but you can clearly read a staff_memo." }
+            },
+            'corridor_a': {
+                name: "Corridor Alpha",
+                desc: "Fluorescent tubes flicker overhead. A heavy security door blocks the NORTH. A break room is to the EAST. A maintenance shaft is WEST.",
+                exits: { 'south': 'detention', 's': 'detention', 'east': 'break_room', 'e': 'break_room', 'west': 'shaft', 'w': 'shaft', 'north': 'checkpoint', 'n': 'checkpoint' },
+                items: [],
+                details: {}
+            },
+            'break_room': {
+                name: "Staff Break Room",
+                desc: "Stale synth-coffee sits in a pot. A crumpled staff_memo lies on the table.",
+                exits: { 'west': 'corridor_a', 'w': 'corridor_a' },
+                items: ['staff_memo', 'mug'],
+                details: { 'staff_memo': "It reads: 'Reminder: The maintenance shaft is off-limits. Someone dropped the blue_keycard down there again.'", 'mug': "It says 'World's Okayest Guard'." }
+            },
+            'shaft': {
+                name: "Maintenance Shaft",
+                desc: "It's pitch black, cramped, and smells like rat decay. You can barely move.",
+                exits: { 'east': 'corridor_a', 'e': 'corridor_a' },
+                items: ['blue_keycard'],
+                details: {}
+            },
+            'checkpoint': {
+                name: "Security Checkpoint",
+                desc: "A fortified guard post. The path continues NORTH into the executive level.",
+                exits: { 'south': 'corridor_a', 's': 'corridor_a', 'north': 'corridor_b', 'n': 'corridor_b' },
+                locked: true,
+                key: 'blue_keycard',
+                lockedMsg: "The blast doors are sealed tight. A glowing terminal reads: 'INSERT BLUE_KEYCARD'.",
+                details: {}
+            },
+            'corridor_b': {
+                name: "Corridor Beta",
+                desc: "Executive level. Plush carpet, ambient synth music. Offices to the EAST and WEST. The main lobby is NORTH.",
+                exits: { 'south': 'checkpoint', 's': 'checkpoint', 'east': 'admin', 'e': 'admin', 'west': 'server', 'w': 'server', 'north': 'lobby', 'n': 'lobby' },
+                items: [],
+                details: {}
+            },
+            'admin': {
+                name: "Admin Office",
+                desc: "A massive mahogany desk sits in front of a shattered skyline window. An open wall safe catches your eye.",
+                exits: { 'west': 'corridor_b', 'w': 'corridor_b' },
+                items: ['gold_keycard'],
+                details: { 'safe': "It's open and completely empty, except for a shiny gold_keycard.", 'window': "The wind howls through the broken glass." }
             },
             'server': {
-                name: "Server Room",
-                desc: "Towering data banks hum loudly. The air is freezing.",
-                exits: { 'west': 'corridor', 'w': 'corridor' },
-                items: ['usb_drive'],
+                name: "Server Core",
+                desc: "Rows of humming quantum mainframes glowing a menacing red.",
+                exits: { 'east': 'corridor_b', 'e': 'corridor_b' },
+                items: ['override_usb'],
                 locked: true,
-                key: 'badge',
-                lockedMsg: "The server room door is locked. A scanner flashes: 'SECURITY BADGE REQUIRED'."
+                key: 'gold_keycard',
+                lockedMsg: "Retinal scanner damaged. The backup physical lock requires executive clearance (a 'gold_keycard').",
+                details: { 'mainframes': "They are processing terabytes of corporate secrets." }
+            },
+            'lobby': {
+                name: "Main Corporate Lobby",
+                desc: "A massive marble foyer with a vaulted glass ceiling. The facility's exterior exit gate is to the NORTH.",
+                exits: { 'south': 'corridor_b', 's': 'corridor_b', 'north': 'gate', 'n': 'gate' },
+                items: [],
+                details: {}
             },
             'gate': {
-                name: "Facility Exit Gate",
-                desc: "A massive steel shutter blocks your escape. A terminal awaits a physical override.",
-                exits: { 'south': 'corridor', 's': 'corridor' },
+                name: "Exit Gate",
+                desc: "You shouldn't be reading this.",
+                exits: { 'south': 'lobby', 's': 'lobby' },
                 items: [],
                 locked: true,
-                key: 'usb_drive',
-                lockedMsg: "The heavy gate is sealed. A terminal flashes: 'INSERT OVERRIDE USB'."
+                key: 'override_usb',
+                lockedMsg: "The titan-steel shutters are down. The control terminal flashes: 'INSERT OVERRIDE_USB TO INITIATE EXIT SEQUENCE'.",
+                details: {}
             }
         };
 
         async function handleGameCommand(cmd) {
             let room = map[currentRoom];
+            
+            // Basic parser: split by space. Verbs are first word, targets are the rest.
+            let parts = cmd.split(' ');
+            let verb = parts[0];
+            let target = parts.slice(1).join(' ');
 
-            if (cmd === 'quit' || cmd === 'exit') {
+            if (verb === 'quit' || verb === 'exit') {
                 currentMode = 'terminal';
                 historyDiv.innerHTML = ''; 
-                await typeText("Aborting simulation...");
+                await typeText("Aborting simulation module...");
                 await typeText(currentPromptText);
                 return;
             }
 
-            if (cmd === 'look' || cmd === 'l') {
-                await typeText(`[${room.name}]`);
+            if (verb === 'look' || verb === 'l') {
+                await typeText(`[ ${room.name} ]`);
                 await typeText(room.desc);
                 if (room.items.length > 0) {
-                    await typeText(`You see a [${room.items.join(', ')}] here.`);
+                    await typeText(`Items here: ${room.items.join(', ')}`);
                 }
                 return;
             }
 
-            if (cmd === 'inv' || cmd === 'inventory' || cmd === 'i') {
+            if (verb === 'inv' || verb === 'inventory' || verb === 'i') {
                 if (inventory.length === 0) {
                     await typeText("You are not carrying anything.");
                 } else {
@@ -335,36 +406,63 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                 return;
             }
 
-            if (cmd === 'help') {
-                await typeText("COMMANDS: north (n), south (s), east (e), west (w), look (l), inv (i), take [item], quit.");
+            if (verb === 'help') {
+                await typeText("GAME COMMANDS:");
+                await typeText("- Move: north (n), south (s), east (e), west (w)");
+                await typeText("- Actions: look (l), inv (i), take [item], examine [object/item]");
+                await typeText("- quit: exit the game");
                 return;
             }
 
-            // Handle "take [item]"
-            if (cmd.startsWith('take ') || cmd.startsWith('get ')) {
-                let item = cmd.split(' ')[1];
-                if (room.items.includes(item)) {
-                    inventory.push(item);
-                    room.items = room.items.filter(i => i !== item);
-                    await typeText(`You picked up the ${item}.`);
+            // Examine functionality
+            if (['examine', 'x', 'read'].includes(verb)) {
+                if (!target) {
+                    await typeText("Examine what? (e.g., 'examine window')");
+                } else if (room.details && room.details[target]) {
+                    await typeText(room.details[target]);
+                } else if (room.items.includes(target) || inventory.includes(target)) {
+                    await typeText(`It's a ${target}. It looks important.`);
                 } else {
-                    await typeText(`There is no ${item} here.`);
+                    await typeText(`You don't see anything special about the '${target}'.`);
                 }
                 return;
             }
 
-            // Movement
-            if (['north', 'n', 'south', 's', 'east', 'e', 'west', 'w'].includes(cmd)) {
-                if (room.exits[cmd]) {
-                    let nextRoomKey = room.exits[cmd];
+            // Take functionality
+            if (['take', 'get', 'grab'].includes(verb)) {
+                if (!target) {
+                    await typeText("Take what? (e.g., 'take silver_key')");
+                } else if (room.items.includes(target)) {
+                    inventory.push(target);
+                    room.items = room.items.filter(i => i !== target);
+                    await typeText(`You picked up the ${target}.`);
+                } else {
+                    await typeText(`There is no ${target} here to take.`);
+                }
+                return;
+            }
+
+            // Movement functionality
+            if (['north', 'n', 'south', 's', 'east', 'e', 'west', 'w'].includes(verb)) {
+                
+                // Allow "n" to map to "north" for looking up exits
+                let direction = verb;
+                if (verb === 'n') direction = 'north';
+                if (verb === 's') direction = 'south';
+                if (verb === 'e') direction = 'east';
+                if (verb === 'w') direction = 'west';
+
+                if (room.exits[direction] || room.exits[verb]) {
+                    let nextRoomKey = room.exits[direction] || room.exits[verb];
                     let nextRoom = map[nextRoomKey];
 
                     // Check if next room is locked
                     if (nextRoom.locked && !inventory.includes(nextRoom.key)) {
                         await typeText(nextRoom.lockedMsg);
                     } else {
+                        // Unlock sequence
                         if (nextRoom.locked && inventory.includes(nextRoom.key)) {
-                            await typeText(`[Used ${nextRoom.key}] Access granted.`);
+                            await typeText(`>>> Used ${nextRoom.key}. Access granted.`);
                             nextRoom.locked = false; // Unlock it permanently
                         }
                         
@@ -372,25 +470,29 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                         
                         // WIN CONDITION: Entering the gate room with the USB
                         if (currentRoom === 'gate') {
-                            await typeText("You insert the USB_DRIVE into the terminal...");
-                            await typeText("ACCESS ACCEPTED. The massive steel shutter grinds open!");
-                            await typeText("You step out into the neon-lit city streets. You are free.");
+                            await typeText("You jam the OVERRIDE_USB into the terminal port...");
+                            await typeText("ACCESS ACCEPTED. System locks disengaged.");
+                            await typeText("The massive titan-steel shutters grind open, flooding the lobby with blinding neon light.");
+                            await typeText("You step out into the rain. You are free.");
+                            await typeText(" ");
                             await typeText("===================================");
-                            await typeText(">>> SIMULATION COMPLETE <<<");
+                            await typeText(">>> PROJECT NEON SIMULATION COMPLETE <<<");
+                            await typeText("===================================");
+                            await typeText(" ");
                             
                             currentMode = 'terminal';
-                            setTimeout(() => { typeText("System rebooting... Do you want to read Claudio's information available on file? (yes/no)"); }, 3000);
+                            setTimeout(() => { typeText("System rebooting... Do you want to read Claudio's information available on file? (yes/no)"); }, 4000);
                         } else {
-                            // Normal movement
-                            await typeText(`[${map[currentRoom].name}]`);
+                            // Normal movement description
+                            await typeText(`[ ${map[currentRoom].name} ]`);
                             await typeText(map[currentRoom].desc);
                             if (map[currentRoom].items.length > 0) {
-                                await typeText(`You see a [${map[currentRoom].items.join(', ')}] here.`);
+                                await typeText(`Items here: ${map[currentRoom].items.join(', ')}`);
                             }
                         }
                     }
                 } else {
-                    await typeText("You can't go that way.");
+                    await typeText("You can't go that way. There is a wall there.");
                 }
                 return;
             }
@@ -398,14 +500,15 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             await typeText("I don't understand that command. Type 'help' for options.");
         }
 
-
         // ==========================================
         // MAIN INPUT LISTENER
         // ==========================================
         inputField.addEventListener('keydown', async function(event) {
             
             // AUDIO ON FOR ALL KEYPRESSES
-            if(event.key !== 'Enter') { new Audio('keypress.mp3').play(); }
+            if(event.key !== 'Enter') { 
+                new Audio('keypress.mp3').play(); 
+            }
 
             if (event.key === 'Enter' && inputContainer.style.display !== 'none') {
                 
@@ -439,7 +542,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                         noCount++;
                         await typeText("Command Not recognized.");
                         if (noCount === 1) {
-                            currentPromptText = "Do you want to read Claudio's information available on file? (help to display commands) - (you don't really have another option)";
+                            currentPromptText = "Do you want to read Claudio's information available on file? (yes/no) (you don't really have another option)";
                         } else {
                             currentPromptText = "System notice: There is genuinely nothing else to display here. Terminate the session if you truly wish to forfeit access to the classified data on file. Do you want to reconsider your decision and access the information instead?";
                         }
@@ -473,10 +576,17 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                         currentMode = 'game';
                         currentRoom = 'cell';
                         inventory = []; // Reset game state
+                        
+                        // Reset locks in case they are playing a second time
+                        map['evidence'].locked = true;
+                        map['checkpoint'].locked = true;
+                        map['server'].locked = true;
+                        map['gate'].locked = true;
+                        
                         historyDiv.innerHTML = ''; 
                         await typeText("LOADING MODULE: PROJECT NEON...");
                         await typeText("===================================");
-                        await typeText("[Holding Cell]");
+                        await typeText(`[ ${map['cell'].name} ]`);
                         await typeText(map['cell'].desc);
                         await typeText("Type 'help' for game commands or 'quit' to exit.");
 
