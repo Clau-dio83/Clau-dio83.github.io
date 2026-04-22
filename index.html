@@ -347,11 +347,14 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                 name: "Server Core",
                 desc: "Rows of humming quantum mainframes glowing a menacing red.",
                 exits: { 'east': 'corridor_b', 'e': 'corridor_b' },
-                items: ['override_usb'],
+                items: ['usb_drive'],
                 locked: true,
                 key: 'gold_keycard',
                 lockedMsg: "Retinal scanner damaged. The backup physical lock requires executive clearance (a 'gold_keycard').",
-                details: { 'mainframes': "They are processing terabytes of corporate secrets." }
+                details: { 
+                    'mainframes': "They are processing terabytes of corporate secrets. You spot a blinking drive plugged into the main console.",
+                    'usb_drive': "A sleek black drive. The label reads: 'C. GIORDANI - CLASSIFIED FILES AND EXIT OVERRIDE'." 
+                }
             },
             'lobby': {
                 name: "Main Corporate Lobby",
@@ -366,8 +369,8 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                 exits: { 'south': 'lobby', 's': 'lobby' },
                 items: [],
                 locked: true,
-                key: 'override_usb',
-                lockedMsg: "The titan-steel shutters are down. The control terminal flashes: 'INSERT OVERRIDE_USB TO INITIATE EXIT SEQUENCE'.",
+                key: 'usb_drive',
+                lockedMsg: "The titan-steel shutters are down. The control terminal flashes: 'INSERT USB_DRIVE TO OVERRIDE LOCKDOWN'.",
                 details: {}
             }
         };
@@ -375,7 +378,6 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         async function handleGameCommand(cmd) {
             let room = map[currentRoom];
             
-            // Basic parser: split by space. Verbs are first word, targets are the rest.
             let parts = cmd.split(' ');
             let verb = parts[0];
             let target = parts.slice(1).join(' ');
@@ -445,7 +447,6 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
             // Movement functionality
             if (['north', 'n', 'south', 's', 'east', 'e', 'west', 'w'].includes(verb)) {
                 
-                // Allow "n" to map to "north" for looking up exits
                 let direction = verb;
                 if (verb === 'n') direction = 'north';
                 if (verb === 's') direction = 'south';
@@ -456,34 +457,35 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                     let nextRoomKey = room.exits[direction] || room.exits[verb];
                     let nextRoom = map[nextRoomKey];
 
-                    // Check if next room is locked
                     if (nextRoom.locked && !inventory.includes(nextRoom.key)) {
                         await typeText(nextRoom.lockedMsg);
                     } else {
-                        // Unlock sequence
                         if (nextRoom.locked && inventory.includes(nextRoom.key)) {
                             await typeText(`>>> Used ${nextRoom.key}. Access granted.`);
-                            nextRoom.locked = false; // Unlock it permanently
+                            nextRoom.locked = false; 
                         }
                         
                         currentRoom = nextRoomKey;
                         
                         // WIN CONDITION: Entering the gate room with the USB
                         if (currentRoom === 'gate') {
-                            await typeText("You jam the OVERRIDE_USB into the terminal port...");
+                            await typeText("You jam the USB_DRIVE into the terminal port...");
                             await typeText("ACCESS ACCEPTED. System locks disengaged.");
                             await typeText("The massive titan-steel shutters grind open, flooding the lobby with blinding neon light.");
-                            await typeText("You step out into the rain. You are free.");
+                            await typeText("You step out into the rain, clutching the drive tight. You successfully retrieved Claudio's classified files.");
                             await typeText(" ");
-                            await typeText("===================================");
+                            await typeText("====================================================");
                             await typeText(">>> PROJECT NEON SIMULATION COMPLETE <<<");
-                            await typeText("===================================");
+                            await typeText("====================================================");
                             await typeText(" ");
                             
                             currentMode = 'terminal';
-                            setTimeout(() => { typeText("System rebooting... Do you want to read Claudio's information available on file? (yes/no)"); }, 4000);
+                            
+                            // Adjusting the prompt text for winning the game
+                            currentPromptText = "USB_DRIVE detected. Decrypting contents... Do you want to read Claudio's information available on file? (yes/no)";
+                            
+                            setTimeout(() => { typeText(currentPromptText); }, 4000);
                         } else {
-                            // Normal movement description
                             await typeText(`[ ${map[currentRoom].name} ]`);
                             await typeText(map[currentRoom].desc);
                             if (map[currentRoom].items.length > 0) {
@@ -575,9 +577,8 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                     } else if (command === 'play') {
                         currentMode = 'game';
                         currentRoom = 'cell';
-                        inventory = []; // Reset game state
+                        inventory = []; 
                         
-                        // Reset locks in case they are playing a second time
                         map['evidence'].locked = true;
                         map['checkpoint'].locked = true;
                         map['server'].locked = true;
