@@ -573,9 +573,20 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                         historyDiv.innerHTML = '';
                         setTimeout(() => { typeText(currentPromptText); }, 200);
 
+// === POSTHOG TEMP EDIT START ===
                     } else if (command === 'help') {
                         await typeText("AVAILABLE COMMANDS: yes, no, clear, play, whoami, sudo");
+                        await typeText("POSTHOG TEAM: Looking for your next hire? Type 'developermarketer' to inspect what I built for you.");
                         setTimeout(() => { typeText(currentPromptText); }, 400);
+
+                    } else if (command === 'developermarketer') {
+                        await typeText("PostHog team detected. Entering the matrix...");
+                        inputContainer.style.display = 'none';
+                        setTimeout(() => {
+                            startMatrixEffect();
+                            setTimeout(() => { window.location.href = "https://claudiogiordani.com/posthog"; }, 3000);
+                        }, 500);
+                    // === POSTHOG TEMP EDIT END ===
 
                     } else if (command === 'whoami') {
                         await typeText("GUEST_USER_994. ACCESS LEVEL: RESTRICTED.");
