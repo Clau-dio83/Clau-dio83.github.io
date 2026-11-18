@@ -214,7 +214,7 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
         ];
 
         let currentMode = 'terminal'; 
-        let currentPromptText = "Do you want to read Claudio's information available on file? ('help' for commands)";
+        let currentPromptText = "YOU WILL BE ASKED TO READ CLAUDIO'S INFORMATION AVAILABLE ON FILE — TYPE 'help' FOR COMMANDS.";
         let noCount = 0; 
         
         const typingSpeed = 30; 
@@ -573,10 +573,11 @@ SYSTEM INITIALIZED. VER: 4.8.15.16.23.42
                         historyDiv.innerHTML = '';
                         setTimeout(() => { typeText(currentPromptText); }, 200);
 
-// === POSTHOG TEMP EDIT START ===
+                    // === POSTHOG TEMP EDIT START ===
                     } else if (command === 'help') {
                         await typeText("AVAILABLE COMMANDS: yes, no, clear, play, whoami, sudo");
                         await typeText("POSTHOG TEAM: Looking for your next hire? Type 'developermarketer' to inspect what I built for you.");
+                        currentPromptText = "Do you want to read Claudio's information available on file? Or choose another command ('help' for commands)";
                         setTimeout(() => { typeText(currentPromptText); }, 400);
 
                     } else if (command === 'developermarketer') {
