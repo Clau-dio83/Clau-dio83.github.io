@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PostHog // Sales Enablement Copilot (Q4 2026)</title>
+  <!-- Typography: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          },
+          colors: {
+            hog: {
+              bg: '#F3F4EF',
+              surface: '#FFFFFF',
+              ink: '#151515',
+              orange: '#F54E00',
+              orangeDark: '#D64400',
+              yellow: '#F7A501',
+              yellowSoft: '#FFF9E6',
+              blue: '#1D4AFF',
+              green: '#10B981',
+              red: '#EF4444',
+              terminal: '#16181D'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* PostHog Handbook & Retro-Modern OS Tokens */
+    body {
+      background-color: #F3F4EF;
+      color: #151515;
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+
+    .os-grid {
+      background-image: radial-gradient(#C9CAC2 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .hog-window {
+      background-color: #FFFFFF;
+      border: 1.5px solid #151515;
+      border-radius: 8px;
+      box-shadow: 4px 4px 0px #151515;
+    }
+
+    .hog-card {
+      background-color: #FFFFFF;
+      border: 1.5px solid #151515;
+      border-radius: 6px;
+      box-shadow: 2px 2px 0px #151515;
+    }
+
+    .hog-btn {
+      border: 1.5px solid #151515;
+      border-radius: 6px;
+      box-shadow: 2px 2px 0px #151515;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.12s ease;
+    }
+
+    .hog-btn:hover {
+      transform: translate(-0.5px, -0.5px);
+      box-shadow: 2.5px 2.5px 0px #151515;
+    }
+
+    .hog-btn:active {
+      transform: translate(1.5px, 1.5px);
+      box-shadow: 0.5px 0.5px 0px #151515;
+    }
+
+    .tab-active {
+      background-color: #FFFFFF;
+      border-bottom: 2px solid #FFFFFF;
+      color: #151515;
+      font-weight: 700;
+    }
+
+    .tab-inactive {
+      background-color: #E4E5DE;
+      border-bottom: 1.5px solid #151515;
+      color: #4B5563;
+    }
+
+    .tab-inactive:hover {
+      background-color: #ECEEE7;
+      color: #151515;
+    }
+
+    /* Custom Scrollbars for Code & Event Logs */
+    pre::-webkit-scrollbar,
+    .scroll-thin::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+
+    pre::-webkit-scrollbar-track,
+    .scroll-thin::-webkit-scrollbar-track {
+      background: #16181D;
+      border-radius: 4px;
+    }
+
+    pre::-webkit-scrollbar-thumb,
+    .scroll-thin::-webkit-scrollbar-thumb {
+      background: #4B5563;
+      border-radius: 4px;
+    }
+
+    pre::-webkit-scrollbar-thumb:hover,
+    .scroll-thin::-webkit-scrollbar-thumb:hover {
+      background: #F54E00;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.55; }
+    }
+
+    .live-dot {
+      animation: livePulse 1.8s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-2 sm:p-4 md:p-6 os-grid flex flex-col justify-between">
+
+  <!-- Main OS Application Frame -->
+  <div class="max-w-7xl w-full mx-auto hog-window overflow-hidden">
+
+    <!-- Top Header Bar -->
+    <header class="bg-[#E6E7DF] border-b-[1.5px] border-[#151515] px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
+      <!-- Left: OS Window Traffic Lights, Emblem & Title -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="flex items-center gap-1.5 shrink-0" aria-hidden="true">
+          <span class="w-3 h-3 rounded-full bg-[#EF4444] border border-[#151515]"></span>
+          <span class="w-3 h-3 rounded-full bg-[#F7A501] border border-[#151515]"></span>
+          <span class="w-3 h-3 rounded-full bg-[#10B981] border border-[#151515]"></span>
+        </div>
+
+        <!-- Custom Geometric Hedgehog OS Mark -->
+        <div class="hidden sm:flex items-center justify-center w-7 h-7 rounded bg-[#F54E00] border border-[#151515] shrink-0">
+          <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 15c0-4.5 3.5-8 8-8 3.8 0 7 2.5 7.8 6l1.7 1.5-2.2 1.5c-.8 2.2-3 3.5-5.3 3.5H7c-1.7 0-3-1.3-3-3v-1.5z"/>
+            <circle cx="15.5" cy="12.5" r="1" fill="currentColor"/>
+            <path d="M7 7l1.5 2M10.5 6l.5 2.5M14 6.5l-.5 2.5"/>
+          </svg>
+        </div>
+
+        <div class="font-mono text-xs sm:text-sm font-bold text-[#151515] truncate">
+          PostHog // Sales Enablement Copilot <span class="text-[#F54E00]">(Q4 2026)</span>
+        </div>
+      </div>
+
+      <!-- Right: Handbook Path Indicator & Live Telemetry Pill -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <div class="font-mono text-[11px] sm:text-xs bg-white border border-[#151515] rounded px-2.5 py-1 text-[#151515]">
+          <span class="text-[#6B7280]">handbook:</span>
+          <span class="font-semibold">posthog.com/handbook/growth/sales</span>
+        </div>
+
+        <button
+          onclick="switchTab('telemetry')"
+          title="Open live posthog.capture() stream"
+          class="hog-btn bg-[#16181D] text-white font-mono text-[11px] sm:text-xs px-2.5 py-1 flex items-center gap-2 cursor-pointer"
+        >
+          <span class="w-2 h-2 rounded-full bg-[#10B981] live-dot"></span>
+          <span>posthog.capture: <strong id="header-event-count" class="text-[#F7A501]">1</strong></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Folder Navigation Tabs -->
+    <nav class="bg-[#D9DAD2] border-b-[1.5px] border-[#151515] px-3 sm:px-5 pt-2 flex items-end gap-1.5 overflow-x-auto" role="tablist">
+      <button
+        id="tab-btn-cockpit"
+        onclick="switchTab('cockpit')"
+        role="tab"
+        aria-selected="true"
+        class="tab-active px-3.5 py-2 rounded-t-md border-t-[1.5px] border-x-[1.5px] border-[#151515] text-xs sm:text-sm flex items-center gap-2 shrink-0 cursor-pointer -mb-[1.5px]"
+      >
+        <span class="font-mono text-[11px] px-1.5 py-0.5 rounded bg-[#F54E00] text-white font-bold">01</span>
+        <span>Live Call Cockpit</span>
+        <span class="hidden md:inline font-mono text-[11px] text-[#6B7280]">(Battlecards &amp; Discovery)</span>
+      </button>
+
+      <button
+        id="tab-btn-pr"
+        onclick="switchTab('pr')"
+        role="tab"
+        aria-selected="false"
+        class="tab-inactive px-3.5 py-2 rounded-t-md border-t-[1.5px] border-x-[1.5px] border-[#151515] text-xs sm:text-sm flex items-center gap-2 shrink-0 cursor-pointer -mb-[1.5px]"
+      >
+        <span class="font-mono text-[11px] px-1.5 py-0.5 rounded bg-[#1D4AFF] text-white font-bold">02</span>
+        <span>Gong / Slack → Handbook PR</span>
+        <span class="hidden md:inline font-mono text-[11px] text-[#6B7280]">(Git Diff Engine)</span>
+      </button>
+
+      <button
+        id="tab-btn-telemetry"
+        onclick="switchTab('telemetry')"
+        role="tab"
+        aria-selected="false"
+        class="tab-inactive px-3.5 py-2 rounded-t-md border-t-[1.5px] border-x-[1.5px] border-[#151515] text-xs sm:text-sm flex items-center gap-2 shrink-0 cursor-pointer -mb-[1.5px]"
+      >
+        <span class="font-mono text-[11px] px-1.5 py-0.5 rounded bg-[#10B981] text-[#151515] font-bold">03</span>
+        <span>Enablement Telemetry</span>
+        <span class="hidden md:inline font-mono text-[11px] text-[#6B7280]">(posthog.capture Live Stream)</span>
+      </button>
+    </nav>
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: LIVE CALL COCKPIT                                            -->
+    <!-- =================================================================== -->
+    <main id="panel-cockpit" class="p-3 sm:p-5 bg-[#F9F9F6]">
+
+      <!-- Custom Objection Synthesizer Bar -->
+      <section class="hog-card p-3.5 sm:p-4 mb-5 bg-white">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-[11px] uppercase font-bold px-2 py-0.5 rounded bg-[#151515] text-[#F7A501]">
+              Custom Objection Synthesizer
+            </span>
+            <span class="text-xs text-[#4B5563]">
+              Type any live prospect objection or competitor name to build a tailored 4-part call card locally.
+            </span>
+          </div>
+          <span class="font-mono text-[11px] text-[#6B7280]">0ms • Client-Side Heuristic Engine</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input
+            id="custom-objection-input"
+            type="text"
+            placeholder='e.g. "We already use Amplitude + Sentry and are worried about GDPR EU data residency..."'
+            class="flex-1 font-sans text-sm bg-[#F3F4EF] border-[1.5px] border-[#151515] rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#F54E00]"
+            onkeydown="if (event.key === 'Enter') synthesizeCustomObjection()"
+          />
+          <button
+            onclick="synthesizeCustomObjection()"
+            class="hog-btn bg-[#F54E00] hover:bg-[#D64400] text-white font-semibold text-sm px-4 py-2 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <span>Synthesize Battlecard</span>
+          </button>
+        </div>
+
+        <!-- Quick Test Chips -->
+        <div class="mt-2.5 flex flex-wrap items-center gap-1.5 text-xs">
+          <span class="font-mono text-[11px] text-[#6B7280]">Quick test:</span>
+          <button onclick="applyQuickObjection('We already use Amplitude and Mixpanel—why switch to PostHog?')" class="font-mono text-[11px] bg-[#F3F4EF] hover:bg-[#F7A501]/30 border border-[#151515]/40 rounded px-2 py-0.5 cursor-pointer transition">
+            Amplitude / Mixpanel
+          </button>
+          <button onclick="applyQuickObjection('Our security team requires strict GDPR compliance and EU hosting, or self-hosting.')" class="font-mono text-[11px] bg-[#F3F4EF] hover:bg-[#F7A501]/30 border border-[#151515]/40 rounded px-2 py-0.5 cursor-pointer transition">
+            GDPR / Self-Hosting
+          </button>
+          <button onclick="applyQuickObjection('We already pipe everything into BigQuery and query it directly with SQL.')" class="font-mono text-[11px] bg-[#F3F4EF] hover:bg-[#F7A501]/30 border border-[#151515]/40 rounded px-2 py-0.5 cursor-pointer transition">
+            BigQuery + SQL
+          </button>
+          <button onclick="applyQuickObjection('We use Sentry for error tracking and Pendo for product tours.')" class="font-mono text-[11px] bg-[#F3F4EF] hover:bg-[#F7A501]/30 border border-[#151515]/40 rounded px-2 py-0.5 cursor-pointer transition">
+            Sentry + Pendo
+          </button>
+        </div>
+      </section>
+
+      <!-- Main 2-Column Cockpit Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        <!-- Left Sidebar: Q4 2026 Battlecards -->
+        <aside class="lg:col-span-4 space-y-3">
+          <div class="hog-card p-3.5 bg-white">
+            <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-[#E5E7EB]">
+              <h2 class="font-mono text-xs font-bold uppercase tracking-wider text-[#151515]">
+                Q4 2026 Playbooks
+              </h2>
+              <span id="sidebar-count" class="font-mono text-[11px] text-[#6B7280]">5 Cards</span>
+            </div>
+
+            <div id="battlecard-sidebar-list" class="space-y-2">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <div class="hog-card p-3 bg-[#F3F4EF] text-xs text-[#4B5563]">
+            <div class="font-mono font-bold text-[#151515] mb-1">Handbook Operating Rule</div>
+            <p class="leading-relaxed">
+              Every card fits on one screen without scrolling through slides: blunt talk track, honest disqualifiers, 3 discovery questions, and live code proof.
+            </p>
+          </div>
+        </aside>
+
+        <!-- Right Main Area: 4 Structured 5-Second Scannable Modules -->
+        <section class="lg:col-span-8 space-y-4">
+
+          <!-- Battlecard Header -->
+          <div class="hog-card p-4 sm:p-5 bg-white">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="bc-objective-badge" class="font-mono text-xs font-bold px-2.5 py-0.5 rounded bg-[#F54E00] text-white border border-[#151515]">
+                  Goal 4 • Data Warehouse Literacy
+                </span>
+                <span id="bc-competitor-badge" class="font-mono text-xs px-2 py-0.5 rounded bg-[#F3F4EF] text-[#151515] border border-[#151515]">
+                  vs. Snowflake + dbt
+                </span>
+              </div>
+              <span id="bc-filepath-label" class="font-mono text-[11px] text-[#6B7280]">
+                contents/handbook/growth/sales/battlecards/warehouse-vs-snowflake.md
+              </span>
+            </div>
+
+            <h1 id="bc-headline" class="text-lg sm:text-xl font-extrabold text-[#151515] leading-snug">
+              "We already pipe everything into Snowflake + dbt. Why touch PostHog's Data Warehouse?"
+            </h1>
+          </div>
+
+          <!-- Module 1: 30-Second Reality Check -->
+          <div class="hog-card p-4 sm:p-5 bg-white">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold w-6 h-6 rounded bg-[#151515] text-white flex items-center justify-center">1</span>
+                <h2 class="font-bold text-sm sm:text-base text-[#151515]">30-Second Reality Check</h2>
+              </div>
+              <button
+                onclick="copyTalkTrack()"
+                class="hog-btn bg-[#F3F4EF] hover:bg-[#F7A501] text-[#151515] font-mono text-xs font-semibold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy Talk Track</span>
+              </button>
+            </div>
+            <p id="bc-reality-check" class="text-sm sm:text-[15px] leading-relaxed text-[#151515] bg-[#F9F9F6] border-l-4 border-[#F54E00] p-3.5 rounded-r font-medium">
+              <!-- Populated by JS -->
+            </p>
+          </div>
+
+          <!-- Module 2: PostHog Honesty Box (Yellow Callout Card) -->
+          <div class="hog-card p-4 sm:p-5 bg-[#FFF9E6] border-[#151515]">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[#F7A501] text-[#151515] border border-[#151515]">
+                2 • POSTHOG HONESTY BOX
+              </span>
+              <h2 class="font-bold text-sm sm:text-base text-[#151515]">When NOT to Sell PostHog</h2>
+            </div>
+            <p id="bc-honesty-box" class="text-sm leading-relaxed text-[#151515]">
+              <!-- Populated by JS -->
+            </p>
+          </div>
+
+          <!-- Module 3: 3 Architectural Discovery Questions -->
+          <div class="hog-card p-4 sm:p-5 bg-white">
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold w-6 h-6 rounded bg-[#1D4AFF] text-white flex items-center justify-center">3</span>
+                <h2 class="font-bold text-sm sm:text-base text-[#151515]">3 Architectural Discovery Questions</h2>
+              </div>
+              <span class="font-mono text-[11px] text-[#6B7280]">Click any question to copy</span>
+            </div>
+            <div id="bc-discovery-questions" class="space-y-2.5">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Module 4: Live Technical Proof Snippet -->
+          <div class="hog-card overflow-hidden bg-[#16181D] text-white">
+            <div class="bg-[#20232B] border-b border-[#323642] px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[#10B981] text-[#151515]">4 • LIVE TECHNICAL PROOF</span>
+                <span id="bc-snippet-title" class="font-mono text-xs text-gray-200 font-medium">
+                  HogQL: Join Stripe Invoices + Product Events
+                </span>
+              </div>
+              <button
+                onclick="copyProofSnippet()"
+                class="hog-btn bg-[#F54E00] hover:bg-[#D64400] text-white font-mono text-xs font-semibold px-3 py-1 flex items-center gap-1.5 cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy Proof</span>
+              </button>
+            </div>
+            <pre class="p-4 font-mono text-xs sm:text-[13px] leading-relaxed text-[#E5E7EB] overflow-x-auto"><code id="bc-snippet-code"></code></pre>
+          </div>
+
+        </section>
+      </div>
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: GONG / SLACK -> HANDBOOK PR GENERATOR                        -->
+    <!-- =================================================================== -->
+    <main id="panel-pr" class="hidden p-3 sm:p-5 bg-[#F9F9F6]">
+
+      <!-- Workflow Header -->
+      <section class="hog-card p-4 mb-5 bg-white flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[#1D4AFF] text-white">PRs &gt; Issues &gt; Slack</span>
+            <h2 class="font-extrabold text-base sm:text-lg text-[#151515]">Gong / Slack → Handbook PR Generator</h2>
+          </div>
+          <p class="text-xs sm:text-sm text-[#4B5563]">
+            Turn raw customer call transcripts or <span class="font-mono text-[#151515]">#sales-deals</span> threads into structured buyer friction and a unified Markdown Git diff for <span class="font-mono text-[#F54E00]">PostHog/posthog.com</span>.
+          </p>
+        </div>
+        <div class="font-mono text-xs bg-[#F3F4EF] border border-[#151515] rounded px-3 py-2 shrink-0">
+          Target: <strong>contents/handbook/growth/sales/</strong>
+        </div>
+      </section>
+
+      <!-- Preset Selector & Raw Transcript Box -->
+      <section class="hog-card p-4 mb-5 bg-white">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="font-mono text-xs font-bold text-[#151515]">Presets:</span>
+          <button
+            id="preset-btn-0"
+            onclick="selectPrPreset(0)"
+            class="hog-btn bg-[#FFF9E6] hover:bg-[#F7A501] text-[#151515] font-mono text-xs px-2.5 py-1.5 cursor-pointer"
+          >
+            1. Gong Call: VP Eng on Warehouse Joins
+          </button>
+          <button
+            id="preset-btn-1"
+            onclick="selectPrPreset(1)"
+            class="hog-btn bg-[#F3F4EF] hover:bg-[#F7A501] text-[#151515] font-mono text-xs px-2.5 py-1.5 cursor-pointer"
+          >
+            2. Slack #sales-deals: AI Startup asking about MCP + Cursor
+          </button>
+          <button
+            id="preset-btn-2"
+            onclick="selectPrPreset(2)"
+            class="hog-btn bg-[#F3F4EF] hover:bg-[#F7A501] text-[#151515] font-mono text-xs px-2.5 py-1.5 cursor-pointer"
+          >
+            3. Gong Call: Enterprise Security on EU Cloud vs Self-Host
+          </button>
+        </div>
+
+        <label for="pr-raw-input" class="block font-mono text-xs font-bold uppercase text-[#4B5563] mb-1.5">
+          Raw Gong Call Transcript / Slack Thread:
+        </label>
+        <textarea
+          id="pr-raw-input"
+          rows="5"
+          class="w-full font-mono text-xs sm:text-[13px] bg-[#F3F4EF] border-[1.5px] border-[#151515] rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-[#1D4AFF] leading-relaxed"
+          placeholder="Paste raw Gong transcript or Slack thread here..."
+        ></textarea>
+
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs text-[#6B7280]">
+            Edit the text or paste any raw note—the local parser extracts persona, friction, competitor, and unified Markdown diff.
+          </span>
+          <button
+            onclick="extractSignalAndGenerateDiff()"
+            class="hog-btn bg-[#1D4AFF] hover:bg-[#1538CC] text-white font-semibold text-sm px-4 py-2 flex items-center gap-2 cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+            </svg>
+            <span>Extract Signal &amp; Generate Handbook Diff</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 2-Column Extracted Metadata + Unified Git Diff -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        <!-- Left Column: Extracted Signal -->
+        <div class="lg:col-span-5 hog-card p-4 sm:p-5 bg-white space-y-3.5">
+          <div class="flex items-center justify-between border-b border-[#E5E7EB] pb-2.5">
+            <h3 class="font-extrabold text-sm sm:text-base text-[#151515]">Extracted Field Signal</h3>
+            <span id="pr-competitor-pill" class="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#FFF9E6] text-[#151515] border border-[#151515]">
+              Snowflake + dbt
+            </span>
+          </div>
+
+          <div class="space-y-3 text-sm">
+            <div>
+              <span class="font-mono text-[11px] uppercase text-[#6B7280] block">Buyer Persona</span>
+              <p id="pr-persona-output" class="font-semibold text-[#151515] mt-0.5">
+                VP Engineering • Series B Fintech (Snowflake + dbt + Fivetran)
+              </p>
+            </div>
+
+            <div>
+              <span class="font-mono text-[11px] uppercase text-[#6B7280] block">Core Technical Friction</span>
+              <p id="pr-friction-output" class="text-[#151515] mt-0.5 leading-relaxed bg-[#F9F9F6] p-2.5 rounded border border-[#E5E7EB]">
+                Assumes PostHog Data Warehouse requires duplicating petabytes of Snowflake tables and maintaining a parallel dbt pipeline.
+              </p>
+            </div>
+
+            <div>
+              <span class="font-mono text-[11px] uppercase text-[#6B7280] block">Competitor / Stack Mentioned</span>
+              <p id="pr-competitor-output" class="font-mono text-xs font-bold text-[#F54E00] mt-0.5">
+                Snowflake, dbt, Fivetran
+              </p>
+            </div>
+
+            <div>
+              <span class="font-mono text-[11px] uppercase text-[#6B7280] block">Target Handbook File</span>
+              <code id="pr-target-file-output" class="block mt-1 font-mono text-xs bg-[#F3F4EF] border border-[#151515]/30 px-2.5 py-1.5 rounded text-[#151515] break-all">
+                contents/handbook/growth/sales/battlecards/warehouse-vs-snowflake.md
+              </code>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Unified Git Diff -->
+        <div class="lg:col-span-7 hog-card overflow-hidden bg-[#16181D] text-white">
+          <div class="bg-[#20232B] border-b border-[#323642] px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="font-mono text-xs px-2 py-0.5 rounded bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 font-bold shrink-0">
+                UNIFIED DIFF
+              </span>
+              <span id="pr-diff-header-path" class="font-mono text-xs text-gray-200 truncate">
+                contents/handbook/growth/sales/battlecards/warehouse-vs-snowflake.md
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button
+                onclick="copyMarkdownDiff()"
+                class="hog-btn bg-[#2C303D] hover:bg-[#3A3F50] text-white font-mono text-xs px-2.5 py-1 cursor-pointer"
+              >
+                Copy Markdown Diff
+              </button>
+              <button
+                onclick="openPrPreviewModal()"
+                class="hog-btn bg-[#10B981] hover:bg-[#059669] text-[#151515] font-mono text-xs font-bold px-3 py-1 cursor-pointer"
+              >
+                Preview GitHub PR
+              </button>
+            </div>
+          </div>
+
+          <div id="pr-diff-lines-container" class="p-3 sm:p-4 font-mono text-xs leading-relaxed overflow-x-auto scroll-thin space-y-0.5">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: ENABLEMENT TELEMETRY (posthog.capture LIVE STREAM)           -->
+    <!-- =================================================================== -->
+    <main id="panel-telemetry" class="hidden p-3 sm:p-5 bg-[#F9F9F6]">
+
+      <!-- Top Metrics Row -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+        <div class="hog-card p-3.5 bg-white">
+          <div class="font-mono text-[11px] uppercase text-[#6B7280] flex items-center justify-between">
+            <span>Live-Call Copy Rate</span>
+            <span class="text-[#10B981] font-bold">+16.4%</span>
+          </div>
+          <div id="metric-copy-rate" class="text-2xl font-extrabold text-[#151515] mt-1">71.2%</div>
+          <div class="text-xs text-[#4B5563] mt-0.5">AEs copying snippets during Zoom calls</div>
+        </div>
+
+        <div class="hog-card p-3.5 bg-white">
+          <div class="font-mono text-[11px] uppercase text-[#6B7280]">Weekly Rep Adoption</div>
+          <div class="text-2xl font-extrabold text-[#151515] mt-1">92%</div>
+          <div class="text-xs text-[#4B5563] mt-0.5">23 / 25 AEs &amp; TAMs active in 7d</div>
+        </div>
+
+        <div class="hog-card p-3.5 bg-white">
+          <div class="font-mono text-[11px] uppercase text-[#6B7280]">Auto-Deprecation Queue</div>
+          <div class="text-2xl font-extrabold text-[#EF4444] mt-1">2 Assets</div>
+          <div class="text-xs text-[#4B5563] mt-0.5">&lt;5% copy rate in 30d → Deletion PR</div>
+        </div>
+
+        <div class="hog-card p-3.5 bg-[#16181D] text-white">
+          <div class="font-mono text-[11px] uppercase text-[#F7A501] flex items-center justify-between">
+            <span>Session Captures</span>
+            <span class="w-2 h-2 rounded-full bg-[#10B981] live-dot"></span>
+          </div>
+          <div id="metric-session-events" class="text-2xl font-extrabold text-white mt-1">1</div>
+          <div class="text-xs text-gray-300 mt-0.5">Live events fired in this browser tab</div>
+        </div>
+      </section>
+
+      <!-- Leaderboard + Live Event Payload Stream -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        <!-- Left: Battlecard Usage & Deprecation Table -->
+        <div class="lg:col-span-7 hog-card overflow-hidden bg-white">
+          <div class="bg-[#F3F4EF] border-b-[1.5px] border-[#151515] px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="font-extrabold text-sm sm:text-base text-[#151515]">Handbook Battlecard Telemetry</h3>
+              <p class="font-mono text-[11px] text-[#4B5563]">
+                SELECT battlecard, countIf(event='snippet_copied') / count() AS copy_rate FROM sales_enablement
+              </p>
+            </div>
+            <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-white border border-[#151515] font-bold">
+              30d Window
+            </span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="border-b-[1.5px] border-[#151515] bg-[#F9F9F6] font-mono text-[11px] uppercase text-[#4B5563]">
+                  <th class="py-2.5 px-3">Battlecard File</th>
+                  <th class="py-2.5 px-3 text-right">Views</th>
+                  <th class="py-2.5 px-3 text-right">Copies</th>
+                  <th class="py-2.5 px-3 text-right">Copy %</th>
+                  <th class="py-2.5 px-3">Lifecycle</th>
+                </tr>
+              </thead>
+              <tbody id="telemetry-table-body" class="divide-y divide-[#E5E7EB]">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="bg-[#FFF9E6] border-t border-[#151515] px-4 py-2.5 text-xs text-[#151515]">
+            <strong>Anti-Shelfware Rule:</strong> Any battlecard below <strong>5% copy rate</strong> over 30 days is flagged for an immediate deletion PR.
+          </div>
+        </div>
+
+        <!-- Right: Live posthog.capture() JSON Log -->
+        <div class="lg:col-span-5 hog-card overflow-hidden bg-[#16181D] text-white">
+          <div class="bg-[#20232B] border-b border-[#323642] px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-[#10B981] live-dot"></span>
+              <span class="font-mono text-xs font-bold text-white">posthog.capture() Live Stream</span>
+            </div>
+            <button
+              onclick="simulateLiveAeSession()"
+              class="hog-btn bg-[#F54E00] hover:bg-[#D64400] text-white font-mono text-[11px] font-bold px-2.5 py-1 cursor-pointer"
+            >
+              Simulate AE Call
+            </button>
+          </div>
+
+          <div id="telemetry-stream-list" class="p-3 font-mono text-[11px] space-y-2.5 max-h-[430px] overflow-y-auto scroll-thin">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Subtle Footer -->
+  <footer class="max-w-7xl w-full mx-auto mt-3 px-2 flex flex-wrap items-center justify-between gap-2 text-xs text-[#4B5563] font-mono">
+    <span>Built for PostHog Developer Marketing (Sales) • Zero static slide decks</span>
+    <a
+      href="https://claudiogiordani.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="text-[#151515] hover:text-[#F54E00] underline font-semibold transition"
+    >
+      claudiogiordani.com →
+    </a>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: GITHUB PR PREVIEW                                              -->
+  <!-- ===================================================================== -->
+  <div id="pr-preview-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-3 sm:p-4">
+    <div class="hog-window bg-white max-w-2xl w-full overflow-hidden">
+      <div class="bg-[#151515] text-white px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2 font-mono text-xs">
+          <span class="px-2 py-0.5 rounded bg-[#10B981] text-[#151515] font-bold">Open Pull Request</span>
+          <span>PostHog/posthog.com #14908</span>
+        </div>
+        <button onclick="closePrPreviewModal()" class="text-gray-300 hover:text-white font-mono text-sm cursor-pointer">✕</button>
+      </div>
+
+      <div class="p-4 sm:p-5 space-y-4 text-sm">
+        <div>
+          <h3 id="modal-pr-headline" class="font-extrabold text-base sm:text-lg text-[#151515]">
+            docs(sales): update Snowflake coexistence &amp; zero-copy S3 joins battlecard
+          </h3>
+          <p class="font-mono text-xs text-[#6B7280] mt-1">
+            <span class="bg-[#F3F4EF] text-[#151515] px-1.5 py-0.5 rounded border border-[#151515]/30">enablement/field-signal-update</span>
+            <span> → </span>
+            <span class="bg-[#F3F4EF] text-[#151515] px-1.5 py-0.5 rounded border border-[#151515]/30">master</span>
+          </p>
+        </div>
+
+        <!-- Labels -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#F54E00]/15 text-[#F54E00] border border-[#F54E00]">
+            sales-enablement
+          </span>
+          <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#F7A501]/25 text-[#151515] border border-[#151515]">
+            q4-objectives
+          </span>
+          <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#1D4AFF]/15 text-[#1D4AFF] border border-[#1D4AFF]">
+            handbook
+          </span>
+        </div>
+
+        <!-- Reviewers & Checks -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#F9F9F6] p-3 rounded border border-[#151515]">
+          <div>
+            <span class="font-mono text-[11px] uppercase text-[#6B7280] block">Reviewers</span>
+            <div class="font-mono text-xs text-[#151515] mt-1 space-y-1">
+              <div>• <strong>@lizzie-epton</strong> (Developer Marketing)</div>
+              <div>• <strong>@juliana-meyer</strong> (Product Marketing)</div>
+              <div>• <strong>@sales-enablement</strong></div>
+            </div>
+          </div>
+          <div>
+            <span class="font-mono text-[11px] uppercase text-[#6B7280] block">CI &amp; Handbook Checks</span>
+            <div class="font-mono text-xs text-[#059669] mt-1 space-y-1">
+              <div>✓ markdown-frontmatter-valid</div>
+              <div>✓ hogql-query-syntax-check</div>
+              <div>✓ honesty-box-section-present</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diff Summary -->
+        <div class="bg-[#16181D] text-gray-200 rounded p-3 font-mono text-xs">
+          <div class="text-[#10B981] font-bold mb-1">Merge Preview:</div>
+          <div id="modal-merge-summary" class="text-gray-300 leading-relaxed">
+            Updates contents/handbook/growth/sales/battlecards/warehouse-vs-snowflake.md with field-validated talk tracks and HogQL proof.
+          </div>
+        </div>
+
+        <div class="pt-2 flex flex-wrap items-center justify-end gap-2 border-t border-[#E5E7EB]">
+          <button onclick="closePrPreviewModal()" class="hog-btn bg-[#F3F4EF] text-[#151515] font-mono text-xs px-3 py-1.5 cursor-pointer">
+            Close
+          </button>
+          <button onclick="mergePullRequest()" class="hog-btn bg-[#10B981] hover:bg-[#059669] text-[#151515] font-mono text-xs font-bold px-4 py-1.5 cursor-pointer">
+            Merge Pull Request
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Banner -->
+  <div id="toast-notification" class="hidden fixed bottom-4 right-4 z-50 hog-card bg-[#151515] text-white px-4 py-2.5 font-mono text-xs flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
+    <span id="toast-notification-text">Copied to clipboard</span>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- CLIENT-SIDE APPLICATION LOGIC                                         -->
+  <!-- ===================================================================== -->
+  <script>
+    // =========================================================================
+    // 1. PRE-LOADED Q4 2026 BATTLECARDS
+    // =========================================================================
+    const INITIAL_BATTLECARDS = [
+      {
+        id: "goal-4-warehouse",
+        objectiveBadge: "Goal 4 • Data Warehouse Literacy",
+        competitorBadge: "vs. Snowflake + dbt",
+        filepath: "contents/handbook/growth/sales/battlecards/warehouse-vs-snowflake.md",
+        headline: '"We already pipe everything into Snowflake + dbt. Why touch PostHog\'s Data Warehouse?"',
+        realityCheck:
+          "Keep Snowflake for finance and company-wide BI—we aren't trying to rip it out. PostHog Data Warehouse exists so product engineers can join Stripe revenue, Postgres tables, or S3 Parquet buckets directly with live ClickHouse product events and session replays in one HogQL query without waiting two weeks for a dbt PR.",
+        honestyBox:
+          "Do NOT pitch PostHog Data Warehouse to replace a multi-terabyte enterprise Snowflake setup running 400+ finance dbt models, strict Looker semantic layers, or heavy ML training pipelines. If the buyer is a central BI team reporting to the CFO rather than product engineers shipping features, let Snowflake win.",
+        discoveryQuestions: [
+          {
+            q: "When a PM asks whether users who hit a new feature flag convert to paid Stripe plans, how many days does it take to get that answer today?",
+            cue: "Exposes the dbt ticket queue bottleneck where engineers wait days for data engineering to sync product events."
+          },
+          {
+            q: "Are you paying Fivetran MAR taxes just to sync Stripe and Postgres tables so engineers can run ad-hoc joins?",
+            cue: "Highlights PostHog's managed connectors and zero-copy external S3/R2/GCS table querying."
+          },
+          {
+            q: "Can your analysts click directly from a churned revenue row in Snowflake into a session replay of why that user rage-quit?",
+            cue: "Proves Snowflake rows are static numbers without PostHog's event, replay, and error context layer."
+          }
+        ],
+        snippetTitle: "HogQL: Join Stripe Invoices + ClickHouse Events (Zero ETL)",
+        snippetCode: `-- Run live in PostHog SQL Insights (joins managed Stripe source + product events)
+SELECT
+    sub.plan_nickname AS plan_tier,
+    count(DISTINCT p.id) AS active_orgs,
+    countIf(e.event = 'ai_agent_deployed') AS agent_deployments,
+    round(sum(toFloat64(inv.amount_paid)) / 100, 2) AS net_revenue_usd
+FROM events AS e
+INNER JOIN persons AS p ON e.distinct_id = p.id
+INNER JOIN stripe.customer AS cust ON p.properties.email = cust.email
+INNER JOIN stripe.invoice AS inv ON cust.id = inv.customer_id
+INNER JOIN stripe.subscription AS sub ON cust.id = sub.customer_id
+WHERE e.timestamp >= now() - INTERVAL 30 DAY
+  AND inv.status = 'paid'
+GROUP BY plan_tier
+ORDER BY net_revenue_usd DESC;`
+      },
+      {
+        id: "goal-6-mcp",
+        objectiveBadge: "Goal 6 • MCP Analytics",
+        competitorBadge: "vs. Dashboards / DB MCP",
+        filepath: "contents/handbook/growth/sales/battlecards/mcp-analytics.md",
+        headline: '"Why would our engineers care about PostHog MCP vs. just checking dashboards?"',
+        realityCheck:
+          "Engineers hate context-switching out of Cursor or Claude Code to click through five analytics charts when debugging a production regression. PostHog MCP brings live error tracking, feature flag states, user cohorts, and HogQL queries straight into their IDE agent so they can ask why an endpoint spiked and ship a fix in one loop.",
+        honestyBox:
+          "Do NOT pitch PostHog MCP as a transactional write layer for core application state (like issuing customer refunds or mutating production database rows). Your agents still need internal transactional APIs for core app state—PostHog MCP is your product, error, and behavioral context layer.",
+        discoveryQuestions: [
+          {
+            q: "When an engineer investigates a bug in Cursor or Claude Code, how many browser tabs do they open to correlate a stack trace with user behavior?",
+            cue: "Reveals manual tab-switching between Sentry, dashboards, and their IDE that PostHog MCP eliminates."
+          },
+          {
+            q: "If you already wired a read-only Postgres MCP into your IDE, can it tell your agent which feature flag rollout or frontend rage-click preceded a churn?",
+            cue: "Clarifies the difference between transactional database rows and behavioral product telemetry."
+          },
+          {
+            q: "How do you govern permissions when LLMs query product analytics—do you want scoped personal API keys with read-only HogQL access?",
+            cue: "Opens PostHog MCP's granular personal API key scopes (query-run, error-tracking-issues-list)."
+          }
+        ],
+        snippetTitle: ".cursor/mcp.json — Connect Official PostHog MCP Server",
+        snippetCode: `{
+  "mcpServers": {
+    "posthog": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://mcp.posthog.com/mcp",
+        "--header",
+        "Authorization:\${POSTHOG_AUTH_HEADER}"
+      ],
+      "env": {
+        "POSTHOG_AUTH_HEADER": "Bearer phx_your_scoped_personal_api_key"
+      }
+    }
+  }
+}
+
+/* Agent prompt inside Cursor / Claude Code:
+   "Use PostHog MCP to list the top 3 new frontend exceptions since yesterday's
+    deploy, check which orgs hit them, and verify if flag 'checkout-v2' was on." */`
+      },
+      {
+        id: "goal-2-replay-vision",
+        objectiveBadge: "Goal 2 • Replay Vision",
+        competitorBadge: "vs. Datadog RUM / FullStory",
+        filepath: "contents/handbook/growth/sales/battlecards/replay-vision.md",
+        headline: '"We already have Datadog RUM / FullStory. What\'s different about Replay Vision?"',
+        realityCheck:
+          "FullStory and Datadog RUM leave you with tens of thousands of raw recordings nobody has hours to watch, then tax you per seat or session until you sample 5% of traffic. Replay Vision uses AI to watch and cluster friction across thousands of sessions automatically, linking broken UX straight to ClickHouse funnels, feature flags, and backend traces.",
+        honestyBox:
+          "Do NOT sell Replay Vision to non-technical marketing teams wanting static brochure heatmaps without developer instrumentation, or mobile teams needing niche legacy native SDKs we haven't shipped yet. We win when product engineers want replays wired directly into flags, errors, and SQL.",
+        discoveryQuestions: [
+          {
+            q: "How many hours a week does your team actually spend watching raw session recordings versus wishing an AI summarized the top 5 broken flows?",
+            cue: "Exposes 'replay shelfware'—paying five figures for FullStory while opening fewer than 5 videos a month."
+          },
+          {
+            q: "Are you sampling down to 10% of sessions in Datadog RUM or FullStory just to avoid blowing up your annual contract renewal?",
+            cue: "Highlights PostHog's 5,000 free monthly recordings and transparent usage pricing with $0 seat fees."
+          },
+          {
+            q: "When you spot a user stuck in a replay, can you inspect the exact HogQL funnel drop-off and roll back a feature flag in the same tab?",
+            cue: "Reinforces PostHog's unified developer context layer."
+          }
+        ],
+        snippetTitle: "HogQL: Surface High-Friction Sessions for Replay Vision",
+        snippetCode: `-- Find sessions with both rage clicks and uncaught exceptions in last 24h
+SELECT
+    s.session_id,
+    any(p.properties.email) AS user_email,
+    countIf(e.event = '$rageclick') AS rage_clicks,
+    countIf(e.event = '$exception') AS exceptions,
+    concat('https://us.posthog.com/replay/', s.session_id) AS replay_link
+FROM session_replay_events AS s
+INNER JOIN events AS e ON s.session_id = e.\`$session_id\`
+LEFT JOIN persons AS p ON e.distinct_id = p.id
+WHERE s.min_first_timestamp >= now() - INTERVAL 24 HOUR
+GROUP BY s.session_id
+HAVING rage_clicks >= 2 AND exceptions >= 1
+ORDER BY rage_clicks DESC
+LIMIT 20;`
+      },
+      {
+        id: "goal-3-ai-obs",
+        objectiveBadge: "Goal 3 • AI Observability",
+        competitorBadge: "vs. LangSmith / Helicone",
+        filepath: "contents/handbook/growth/sales/battlecards/ai-observability.md",
+        headline: '"We\'re building LLM agents—why track traces in PostHog instead of LangSmith?"',
+        realityCheck:
+          "LangSmith tells you a prompt took 2.4 seconds and cost $0.004, which is great in a vacuum—until you need to know whether that prompt change actually made users upgrade or churn. PostHog AI Observability captures $ai_generation traces alongside product analytics, A/B experiments, and session replays so you optimize prompts for real retention.",
+        honestyBox:
+          "Do NOT pitch PostHog AI Observability to an ML research group running purely offline batch evaluation pipelines with zero end-user product, frontend sessions, or conversion funnels. If there is no user journey downstream of the LLM call, a standalone prompt-eval tool is completely fine.",
+        discoveryQuestions: [
+          {
+            q: "When you ship a new system prompt or swap models, how do you measure whether it improved 7-day user retention rather than synthetic eval scores?",
+            cue: "Exposes the gap between isolated LLM token logs and actual product activation/revenue."
+          },
+          {
+            q: "When a user thumbs-down an AI response in your UI, can an engineer watch the session replay leading up to that exact $ai_trace_id?",
+            cue: "Demonstrates unified trace + session replay + user cohort debugging."
+          },
+          {
+            q: "Are you paying a separate per-seat SaaS bill for LLM logging while your product engineers already live in PostHog?",
+            cue: "Shows tool consolidation savings and zero seat taxes across engineering and PMs."
+          }
+        ],
+        snippetTitle: "TypeScript: @posthog/ai Wrapper Linking Traces to Retention",
+        snippetCode: `import { PostHog } from 'posthog-node'
+import { OpenAI } from '@posthog/ai'
+
+const phClient = new PostHog('phc_your_project_api_key', {
+  host: 'https://us.i.posthog.com'
+})
+
+// Automatic $ai_generation capture: model, tokens, latency, cost + user ID
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  posthog: phClient
+})
+
+const response = await openai.chat.completions.create({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Summarize user cohort churn' }],
+  posthogDistinctId: user.id,
+  posthogTraceId: traceId,
+  posthogProperties: { agent_workflow: 'cohort-copilot', plan: user.plan }
+})`
+      },
+      {
+        id: "rfc-818-pricing",
+        objectiveBadge: "RFC #818 • Pricing & Migration",
+        competitorBadge: "vs. Amplitude / Mixpanel MTU",
+        filepath: "contents/handbook/growth/sales/battlecards/pricing-predictability.md",
+        headline: '"PostHog gets expensive once event volume scales past 50M/month."',
+        realityCheck:
+          "At 50M+ events/month, PostHog's automatic volume tiers drop per-event rates by up to 80%, you still pay $0 per seat for unlimited teammates, and you only pay for identified person profiles if you configure person_profiles: 'identified_only'. Plus, RFC #818 slashed Data Warehouse sync rates and made querying external S3/R2 tables completely free of row-sync fees.",
+        honestyBox:
+          "Do NOT tell a customer to pipe 500M+ noisy backend debug logs or raw Kubernetes container stdout into PostHog events without sampling. For high-frequency infrastructure log firehoses, a dedicated log store like Loki or Datadog Logs is the right tool—keep PostHog focused on user, product, and AI telemetry.",
+        discoveryQuestions: [
+          {
+            q: "Are you currently sending anonymous landing-page traffic as full identified person profiles, which costs 4x more than anonymous events?",
+            cue: "Setting person_profiles: 'identified_only' immediately cuts high-volume ingestion bills by 60–75%."
+          },
+          {
+            q: "How many engineers, PMs, and support reps are locked out of your current analytics tool because of per-seat licensing?",
+            cue: "Quantifies the hidden seat-tax savings of PostHog's unlimited free seats."
+          },
+          {
+            q: "Do you want hard monthly USD billing limits and before_send() client filtering so a runaway loop can never trigger a surprise invoice?",
+            cue: "Proves PostHog gives engineers programmatic cost controls right in their codebase."
+          }
+        ],
+        snippetTitle: "JS SDK + HogQL: Cut High-Volume Costs with Identified-Only Mode",
+        snippetCode: `// 1. Cut anonymous traffic costs by ~70% at initialization
+posthog.init('phc_your_project_api_key', {
+  api_host: 'https://us.i.posthog.com',
+  person_profiles: 'identified_only', // Only create profiles on posthog.identify()
+  before_send: (event) => {
+    // Drop noisy healthcheck or internal bot events before ingestion
+    if (event?.properties?.['$pathname'] === '/healthz') return null
+    return event
+  }
+})
+
+/* 2. Audit top volume events in HogQL:
+   SELECT event, count() AS vol FROM events
+   WHERE timestamp >= now() - INTERVAL 7 DAY
+   GROUP BY event ORDER BY vol DESC LIMIT 10; */`
+      }
+    ];
+
+    // =========================================================================
+    // 2. DETERMINISTIC HEURISTIC PARSER FOR CUSTOM OBJECTIONS (TAB 1)
+    // =========================================================================
+    const OBJECTION_HEURISTICS = [
+      {
+        keywords: ["amplitude", "mixpanel", "heap", "pendo"],
+        competitorName: "Amplitude / Mixpanel / Pendo",
+        objectiveBadge: "Goal 1 • All-in-One Devtool",
+        realityCheck:
+          "Amplitude and Mixpanel charge punitive MTU and per-seat taxes that force teams to ration access, and they still leave you buying separate vendors for feature flags, session replays, and error tracking. PostHog gives every engineer and PM unlimited $0 seats plus direct SQL access over events, flags, replays, and warehouse tables in one SDK.",
+        honestyBox:
+          "Do NOT pitch PostHog to a non-technical enterprise marketing ops team that refuses to write SQL or instrument code events and only wants drag-and-drop no-code Pendo in-app tooltips without engineering involvement.",
+        discoveryQuestions: [
+          {
+            q: "How many tools and separate SDKs are currently bundled on your frontend to cover analytics, feature flags, replays, and experiments?",
+            cue: "Highlights bundle size reduction and unified identity resolution across one SDK."
+          },
+          {
+            q: "When an A/B experiment moves a conversion metric, can your PMs watch session replays of the winning variant without exporting CSV user IDs?",
+            cue: "Exposes the friction of disconnected point tools."
+          },
+          {
+            q: "How much of your renewal budget goes toward per-seat licenses rather than actual data volume?",
+            cue: "Reinforces PostHog's $0 unlimited seats model."
+          }
+        ],
+        snippetTitle: "HogQL: Experiment Conversion + Error Rate in One Query",
+        snippetCode: `-- Compare feature flag variants across conversion AND frontend exceptions
+SELECT
+    properties.\`$feature/onboarding-redesign\` AS variant,
+    count(DISTINCT distinct_id) AS unique_users,
+    countIf(event = 'checkout_completed') AS conversions,
+    round(conversions * 100.0 / unique_users, 2) AS conversion_pct,
+    countIf(event = '$exception') AS frontend_errors
+FROM events
+WHERE timestamp >= now() - INTERVAL 14 DAY
+  AND variant IS NOT NULL
+GROUP BY variant
+ORDER BY conversion_pct DESC;`
+      },
+      {
+        keywords: ["gdpr", "eu", "europe", "privacy", "hipaa", "soc2", "compliance", "residency"],
+        competitorName: "EU Compliance & Security Review",
+        objectiveBadge: "Enterprise Security • EU Cloud",
+        realityCheck:
+          "PostHog runs a dedicated, isolated EU Cloud region hosted in Frankfurt, Germany (eu.posthog.com) so EU customer data never touches US servers. We are SOC 2 Type II certified, offer signed DPAs and HIPAA BAAs on Business/Enterprise plans, and support cookieless memory-only tracking so you don't even need a cookie banner for anonymous analytics.",
+        honestyBox:
+          "Do NOT promise HIPAA compliance on our free/self-serve tier without a signed BAA, and do NOT pitch PostHog Cloud to defense or banking workloads that legally require air-gapped on-prem servers with zero external internet egress.",
+        discoveryQuestions: [
+          {
+            q: "Does your DPO require EU data residency in Frankfurt (eu.posthog.com), or are you also looking to eliminate third-party cookies completely?",
+            cue: "Opens both EU Cloud hosting and PostHog's cookieless persistence: 'memory' configuration."
+          },
+          {
+            q: "Are you routing analytics through a first-party reverse proxy subdomain so ad-blockers and strict CSP headers don't drop telemetry?",
+            cue: "Shows technical depth with PostHog's managed reverse proxy or Cloudflare Worker setup."
+          },
+          {
+            q: "Do you need PII scrubbing at ingestion before properties ever hit ClickHouse storage?",
+            cue: "Highlights property_denylist and before_send() client-side sanitization."
+          }
+        ],
+        snippetTitle: "TypeScript: EU Frankfurt Residency + Cookieless GDPR Config",
+        snippetCode: `// Zero cookies + Frankfurt EU hosting + automatic PII stripping
+posthog.init('phc_your_eu_project_key', {
+  api_host: 'https://eu.i.posthog.com',
+  ui_host: 'https://eu.posthog.com',
+  persistence: 'memory', // Zero cookies or localStorage written to user browser
+  property_denylist: ['$ip', 'email', 'full_name'], // Strip PII before ingestion
+  mask_all_text: true, // Mask sensitive DOM text in Session Replay
+  mask_all_element_attributes: true
+})`
+      },
+      {
+        keywords: ["self-host", "self host", "open source", "open-source", "docker", "kubernetes", "helm"],
+        competitorName: "Self-Hosted FOSS vs. PostHog Cloud",
+        objectiveBadge: "Open Core • Cloud vs. Self-Host",
+        realityCheck:
+          "Our MIT-licensed open-source codebase is right on GitHub so your security team can audit every line of code. For production workloads past a few million events, operating ClickHouse, Kafka, ZooKeeper, and Temporal clusters in-house burns far more SRE time than PostHog Cloud—which ships new features daily with 99.95% uptime.",
+        honestyBox:
+          "If a team has under 1M monthly events, a dedicated platform engineer who genuinely enjoys maintaining ClickHouse clusters, and zero need for commercial Cloud features like Replay Vision or managed Warehouse syncs, let them self-host happily.",
+        discoveryQuestions: [
+          {
+            q: "Do you have a dedicated ClickHouse + Kafka engineer on-call ready to handle disk compaction and schema migrations at 2 AM?",
+            cue: "Quantifies the hidden SRE maintenance cost of self-hosting ClickHouse at scale."
+          },
+          {
+            q: "Is the underlying driver code transparency (auditing our open-source SDKs) or strict network isolation?",
+            cue: "Separates open-source trust from actual infrastructure requirements."
+          },
+          {
+            q: "Which commercial features like Replay Vision, managed Stripe/Postgres warehouse connectors, and PostHog MCP are on your roadmap?",
+            cue: "Clarifies what ships exclusively in PostHog Cloud."
+          }
+        ],
+        snippetTitle: "Reverse Proxy Config: First-Party Domain on PostHog Cloud",
+        snippetCode: `// next.config.js — Route PostHog Cloud through your own domain (1st-party)
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/ingest/static/:path*',
+        destination: 'https://us-assets.i.posthog.com/static/:path*',
+      },
+      {
+        source: '/ingest/:path*',
+        destination: 'https://us.i.posthog.com/:path*',
+      },
+    ]
+  },
+}
+module.exports = nextConfig`
+      },
+      {
+        keywords: ["bigquery", "redshift", "databricks", "sql", "clickhouse", "warehouse", "snowflake"],
+        competitorName: "BigQuery / Cloud Data Warehouse",
+        objectiveBadge: "Goal 4 • Data Warehouse Literacy",
+        realityCheck:
+          "Keep BigQuery for company-wide BI and ML pipelines—PostHog Data Warehouse isn't replacing it. We let product engineers query GCS/S3 Parquet buckets, Postgres, and Stripe directly alongside live ClickHouse user events and session replays in one HogQL query without waiting for scheduled ETL jobs.",
+        honestyBox:
+          "Do NOT pitch PostHog Data Warehouse to replace a massive BigQuery ML or enterprise finance warehouse running hundreds of Looker models. Position us as the fast operational product-engineering join layer.",
+        discoveryQuestions: [
+          {
+            q: "How long does it take a product engineer to join a billing table in BigQuery with frontend feature-flag exposure today?",
+            cue: "Highlights instant HogQL joins vs. batch ETL latency."
+          },
+          {
+            q: "Do you already export Parquet files to GCS or S3 that PostHog could query in place with zero row-sync fees?",
+            cue: "Applies RFC #818 external bucket pricing directly."
+          },
+          {
+            q: "When a BigQuery cohort shows a drop in activation, can you click straight into the session replays of those exact users?",
+            cue: "Proves the value of PostHog's unified context layer."
+          }
+        ],
+        snippetTitle: "HogQL: Query External GCS/S3 Parquet + Live Events",
+        snippetCode: `-- Join zero-copy external Parquet table with live ClickHouse events
+SELECT
+    ext.account_segment AS segment,
+    count(DISTINCT e.distinct_id) AS active_users,
+    countIf(e.event = 'workspace_upgraded') AS upgrades
+FROM events AS e
+INNER JOIN s3.billing_segments AS ext
+    ON e.properties.org_id = ext.org_id
+WHERE e.timestamp >= now() - INTERVAL 14 DAY
+GROUP BY segment
+ORDER BY upgrades DESC;`
+      },
+      {
+        keywords: ["datadog", "sentry", "new relic", "rum", "error", "logs", "apm"],
+        competitorName: "Datadog RUM / Sentry",
+        objectiveBadge: "Goal 1 • Unified Error & Product Context",
+        realityCheck:
+          "Sentry gives you a stack trace, but it doesn't know whether the bug blocked an enterprise trial from upgrading or whether a feature flag caused it. PostHog Error Tracking links uncaught exceptions directly to the user's session replay, active feature flags, and conversion funnel in one ClickHouse-backed workflow.",
+        honestyBox:
+          "Do NOT pitch PostHog Error Tracking to replace Datadog APM for deep kernel-level eBPF profiling, distributed microservice flamegraphs across 800 backend pods, or raw Kubernetes log ingestion.",
+        discoveryQuestions: [
+          {
+            q: "When Sentry fires an alert after a deploy, how do you verify whether it's affecting 2% of free users or 40% of paying enterprise accounts?",
+            cue: "Shows the power of joining exceptions with revenue and person properties."
+          },
+          {
+            q: "Can your engineers trigger an automated feature-flag rollback when an exception spikes for a specific experiment variant?",
+            cue: "Highlights native flag + error tracking integration."
+          },
+          {
+            q: "How many tabs does an engineer open to go from a stack trace to watching the user's actual screen recording?",
+            cue: "Demonstrates 1-click replay jump from any PostHog exception."
+          }
+        ],
+        snippetTitle: "HogQL: Rank Exceptions by Lost Paid Conversions",
+        snippetCode: `-- Prioritize bug fixes by actual revenue/conversion impact, not just raw count
+SELECT
+    properties.\`$exception_type\` AS error_type,
+    properties.\`$exception_message\` AS message,
+    count() AS occurrences,
+    count(DISTINCT distinct_id) AS affected_users,
+    countIf(properties.plan_tier = 'enterprise') AS enterprise_hits
+FROM events
+WHERE event = '$exception'
+  AND timestamp >= now() - INTERVAL 7 DAY
+GROUP BY error_type, message
+ORDER BY enterprise_hits DESC, affected_users DESC
+LIMIT 15;`
+      }
+    ];
+
+    // =========================================================================
+    // 3. PRESETS FOR TAB 2 (GONG / SLACK -> HANDBOOK PR GENERATOR)
+    // =========================================================================
+    const PR_PRESETS = [
+      {
+        persona: "VP Engineering • Series B Fintech (Snowflake + dbt + Fivetran)",
+        competitor: "Snowflake, dbt, Fivetran",
+        friction:
+          "Assumes PostHog Data Warehouse requires duplicating petabytes of Snowflake tables and maintaining a second dbt pipeline, rather than coexisting via zero-copy S3/R2 external tables and 5-minute Stripe/Postgres joins.",
+        targetFile: "contents/handbook/growth/sales/battlecards/warehouse-vs-snowflake.md",
+        prTitle: "docs(sales): clarify Snowflake coexistence & zero-copy S3 joins in Warehouse battlecard",
+        mergeSummary:
+          "Updates warehouse-vs-snowflake.md with field-validated coexistence positioning, RFC #818 zero-copy S3/R2 rules, and an explicit CFO/BI disqualifier.",
+        rawInput: `[Gong Call • 14:22] Marcus (VP Eng, Series B Fintech):
+"Look, we already pay six figures for Snowflake and Fivetran, and our data team maintains 300 dbt models there. My product engineers love PostHog for feature flags and analytics, but if you tell me we need to replicate our Snowflake warehouse into PostHog just to join revenue with events, my head of data will block this on sight."
+
+[AE Note]: Heard this on 3 fintech calls this week. Need crisp talk track on coexistence + S3 external tables.`,
+        diffLines: [
+          { type: "meta", num: "@@", text: "@@ -8,11 +8,19 @@" },
+          { type: "ctx", num: "8", text: "## Core Positioning" },
+          { type: "del", num: "9", text: "- PostHog Data Warehouse replaces your existing cloud warehouse with ClickHouse." },
+          { type: "add", num: "9", text: "+ **Coexist with Snowflake—never pitch a rip-and-replace.** Keep Snowflake for finance and company-wide dbt models." },
+          { type: "add", num: "10", text: "+ Position PostHog Data Warehouse as the fast operational join layer for product engineers (Stripe + Postgres + S3/R2 + ClickHouse events)." },
+          { type: "ctx", num: "11", text: "" },
+          { type: "add", num: "12", text: "## Objection: \"We won't replicate petabytes of Snowflake tables\"" },
+          { type: "add", num: "13", text: "+ 1. **Zero-copy external tables:** Link existing S3, R2, or GCS Parquet buckets directly with zero row-sync charges (per RFC #818)." },
+          { type: "add", num: "14", text: "+ 2. **5-minute operational joins:** Sync only high-leverage tables (Stripe invoices, Postgres orgs) to join revenue with feature flags in HogQL." },
+          { type: "add", num: "15", text: "+ 3. **Honesty check:** If the buyer is a CFO/BI team needing 500 Looker dashboards, let Snowflake win." }
+        ]
+      },
+      {
+        persona: "Founding Engineer • AI Coding Startup (Cursor + Postgres + Sentry)",
+        competitor: "Postgres MCP, Cursor, Sentry",
+        friction:
+          "Unsure what PostHog MCP provides over an existing read-only Postgres MCP server inside Cursor, and concerned about agents mutating production feature flags.",
+        targetFile: "contents/handbook/growth/sales/battlecards/mcp-analytics.md",
+        prTitle: "docs(sales): add Cursor + Postgres MCP comparison & scoped API key guardrails",
+        mergeSummary:
+          "Updates mcp-analytics.md to contrast transactional DB state vs. behavioral context and documents scoped read-only personal API keys for Cursor.",
+        rawInput: `[Slack #sales-deals • 10:08 AM] @alex-ae:
+"Talking to a 25-person AI devtool startup. Their founding eng asked: 'We already wired Postgres MCP into Cursor so our agents can inspect user tables. What does PostHog MCP actually give us that Postgres doesn't, and can it accidentally mutate our flags?'"`,
+        diffLines: [
+          { type: "meta", num: "@@", text: "@@ -12,9 +12,18 @@" },
+          { type: "ctx", num: "12", text: "## Pitching PostHog MCP to AI-Native Engineering Teams" },
+          { type: "del", num: "13", text: "- PostHog MCP lets AI agents query your analytics data using natural language." },
+          { type: "add", num: "13", text: "+ **Postgres holds state; PostHog holds behavioral context.** Postgres knows a user churned; PostHog MCP knows they hit three 422 errors and a broken feature flag first." },
+          { type: "ctx", num: "14", text: "" },
+          { type: "add", num: "15", text: "## Security & Mutation Guardrails (Common Eng Question)" },
+          { type: "add", num: "16", text: "+ - **Scoped Personal API Keys:** Engineers control exact read/write scopes (e.g., allow `query-run` and `error-tracking-issues-list` while locking `feature-flag-update`)." },
+          { type: "add", num: "17", text: "+ - **Zero raw PII leakage:** Respects project-level access controls and HogQL schema permissions." },
+          { type: "add", num: "18", text: "+ - **Live Demo Move:** Have the prospect paste `https://mcp.posthog.com/mcp` into `.cursor/mcp.json` and query their top exception in 30 seconds." }
+        ]
+      },
+      {
+        persona: "CISO / Security Lead • European Enterprise SaaS (GDPR + ClickHouse)",
+        competitor: "Self-Hosted FOSS vs. PostHog EU Cloud",
+        friction:
+          "Assumes strict GDPR compliance requires self-hosting PostHog's open-source Docker/Helm stack on-prem, underestimating the SRE cost of operating ClickHouse + Kafka in-house.",
+        targetFile: "contents/handbook/growth/sales/battlecards/eu-cloud-vs-self-host.md",
+        prTitle: "docs(sales): add EU Frankfurt residency + cookieless mode counter for self-host requests",
+        mergeSummary:
+          "Adds eu-cloud-vs-self-host.md detailing Frankfurt EU hosting, reverse proxy setup, cookieless memory mode, and honest air-gapped disqualifiers.",
+        rawInput: `[Gong Call • 31:10] Elena (Security Lead, Frankfurt SaaS):
+"Because of GDPR and our works council, zero customer telemetry can leave the EU. Should we deploy your open-source repo on our own Kubernetes cluster, or how does your managed Cloud handle Frankfurt residency?"`,
+        diffLines: [
+          { type: "meta", num: "@@", text: "@@ -1,7 +1,17 @@" },
+          { type: "ctx", num: "1", text: "## EU Cloud Residency vs. Self-Hosted Open Source" },
+          { type: "del", num: "2", text: "- Recommend PostHog Cloud over self-hosting for all commercial prospects." },
+          { type: "add", num: "2", text: "+ **Separate data residency from infrastructure ownership.** 90% of 'we must self-host for GDPR' requests are solved by PostHog EU Cloud (Frankfurt)." },
+          { type: "add", num: "3", text: "+ - **Isolated EU Infrastructure:** `eu.posthog.com` stores and processes all events, replays, and warehouse tables in Frankfurt, Germany." },
+          { type: "add", num: "4", text: "+ - **Cookieless Mode:** Configure `persistence: 'memory'` + `property_denylist: ['$ip']` for strict works-council reviews." },
+          { type: "add", num: "5", text: "+ - **SRE Reality Check:** Self-hosting requires operating ClickHouse, Kafka, and ZooKeeper clusters in-house." },
+          { type: "add", num: "6", text: "+ - **Honesty Guardrail:** If the environment is strictly air-gapped with zero internet egress, point them to our open-source Helm docs." }
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // 4. TELEMETRY LEADERBOARD DATA (TAB 3)
+    // =========================================================================
+    const INITIAL_LEADERBOARD = [
+      { file: "warehouse-vs-snowflake.md", goal: "Goal 4", views: 218, copies: 156, status: "HIGH SIGNAL" },
+      { file: "mcp-analytics.md", goal: "Goal 6", views: 184, copies: 138, status: "HIGH SIGNAL" },
+      { file: "pricing-predictability.md", goal: "RFC #818", views: 162, copies: 114, status: "ACTIVE" },
+      { file: "replay-vision.md", goal: "Goal 2", views: 141, copies: 93, status: "ACTIVE" },
+      { file: "ai-observability.md", goal: "Goal 3", views: 129, copies: 88, status: "ACTIVE" },
+      { file: "q1-enterprise-overview-deck.pdf", goal: "Legacy", views: 48, copies: 2, status: "DEPRECATE (<5%)" },
+      { file: "analyst-quadrant-summary.md", goal: "Legacy", views: 34, copies: 1, status: "DEPRECATE (<5%)" }
+    ];
+
+    // =========================================================================
+    // 5. APPLICATION STATE
+    // =========================================================================
+    const appState = {
+      activeTab: "cockpit",
+      battlecards: [...INITIAL_BATTLECARDS],
+      selectedCardId: INITIAL_BATTLECARDS[0].id,
+      currentPr: PR_PRESETS[0],
+      leaderboard: JSON.parse(JSON.stringify(INITIAL_LEADERBOARD)),
+      events: []
+    };
+
+    // =========================================================================
+    // 6. TELEMETRY CAPTURE ENGINE (CLIENT-SIDE posthog.capture SIMULATION)
+    // =========================================================================
+    function captureTelemetry(eventName, properties = {}) {
+      const payload = {
+        event: eventName,
+        timestamp: new Date().toISOString(),
+        distinct_id: "ae_sf_demo_01",
+        properties: {
+          $current_url: `https://claudiogiordani.com/posthog#${appState.activeTab}`,
+          $lib: "posthog-js",
+          ...properties
+        }
+      };
+
+      appState.events.unshift(payload);
+      if (appState.events.length > 40) appState.events.pop();
+
+      const total = appState.events.length;
+      document.getElementById("header-event-count").textContent = total;
+      const metricCounter = document.getElementById("metric-session-events");
+      if (metricCounter) metricCounter.textContent = total;
+
+      renderTelemetryStream();
+    }
+
+    function renderTelemetryStream() {
+      const container = document.getElementById("telemetry-stream-list");
+      if (!container) return;
+
+      container.innerHTML = appState.events
+        .map((evt, index) => {
+          const timeStr = evt.timestamp.split("T")[1].replace("Z", "");
+          return `
+            <div class="bg-[#20232B] border border-[#323642] rounded p-2.5 ${index === 0 ? "ring-1 ring-[#F54E00]" : ""}">
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-[#F7A501] font-bold">posthog.capture("${escapeHtml(evt.event)}")</span>
+                <span class="text-gray-400">${timeStr}</span>
+              </div>
+              <pre class="text-[10px] text-gray-300 overflow-x-auto">${escapeHtml(JSON.stringify(evt.properties, null, 2))}</pre>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function renderTelemetryTable() {
+      const tbody = document.getElementById("telemetry-table-body");
+      if (!tbody) return;
+
+      tbody.innerHTML = appState.leaderboard
+        .map((row) => {
+          const pct = row.views > 0 ? ((row.copies / row.views) * 100).toFixed(1) : "0.0";
+          const isDeprecated = parseFloat(pct) < 5.0 || row.status.includes("DEPRECATE");
+
+          let badgeHtml = "";
+          if (isDeprecated) {
+            badgeHtml = `
+              <button
+                onclick="triggerDeprecationPr('${row.file}')"
+                title="Generate deletion PR in Tab 2"
+                class="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-[#EF4444]/15 hover:bg-[#EF4444] hover:text-white text-[#B91C1C] border border-[#EF4444] transition cursor-pointer"
+              >
+                FLAGGED (&lt;5%) → PR
+              </button>`;
+          } else if (row.status === "HIGH SIGNAL") {
+            badgeHtml = `<span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-[#10B981]/20 text-[#065F46] border border-[#10B981]">HIGH SIGNAL</span>`;
+          } else {
+            badgeHtml = `<span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-[#1D4AFF]/15 text-[#1D4AFF] border border-[#1D4AFF]">ACTIVE</span>`;
+          }
+
+          return `
+            <tr class="${isDeprecated ? "bg-[#FEF2F2]/60" : "hover:bg-[#F9F9F6]"}">
+              <td class="py-2.5 px-3 font-mono text-xs">
+                <div class="font-bold text-[#151515]">${escapeHtml(row.file)}</div>
+                <div class="text-[10px] text-[#6B7280]">${escapeHtml(row.goal)}</div>
+              </td>
+              <td class="py-2.5 px-3 text-right font-mono text-xs">${row.views}</td>
+              <td class="py-2.5 px-3 text-right font-mono text-xs font-bold">${row.copies}</td>
+              <td class="py-2.5 px-3 text-right font-mono text-xs ${isDeprecated ? "text-[#EF4444] font-bold" : "text-[#059669] font-bold"}">${pct}%</td>
+              <td class="py-2.5 px-3">${badgeHtml}</td>
+            </tr>
+          `;
+        })
+        .join("");
+    }
+
+    function triggerDeprecationPr(filename) {
+      const deprecationPr = {
+        persona: "Enablement Telemetry • <5% 30-Day Live-Call Copy Rate",
+        competitor: "Unused Playbook Cleanup",
+        friction: `Asset '${filename}' recorded fewer than 5% live-call copies over 30 days. Keeping unused files clutters the public handbook.`,
+        targetFile: `contents/handbook/growth/sales/archive/${filename}`,
+        prTitle: `chore(sales): deprecate unused asset ${filename} (<5% copy rate)`,
+        mergeSummary: `Removes stale file ${filename} and redirects reps to active HogQL & MCP battlecards.`,
+        rawInput: `[Telemetry Alert • Auto-Deprecation Rule]
+File: ${filename}
+30d Views: 48 | Live-Call Copies: 2 (4.2% copy rate)
+Action: Drafting deletion PR to eliminate unused sales enablement shelfware.`,
+        diffLines: [
+          { type: "meta", num: "@@", text: "@@ -1,5 +0,0 @@" },
+          { type: "del", num: "1", text: `--- deleted file: ${filename} ---` },
+          { type: "del", num: "2", text: "- Static enterprise slide deck / analyst summary" },
+          { type: "del", num: "3", text: "- Automatically flagged due to <5% live-call copy rate" },
+          { type: "add", num: "1", text: "+ Removed per PostHog Developer Marketing anti-fluff rule." }
+        ]
+      };
+
+      appState.currentPr = deprecationPr;
+      document.getElementById("pr-raw-input").value = deprecationPr.rawInput;
+      renderPrView(deprecationPr);
+      switchTab("pr");
+      showToast(`Drafted deletion PR for ${filename}`);
+    }
+
+    function simulateLiveAeSession() {
+      const sequence = [
+        { event: "battlecard_viewed", props: { card: "mcp-analytics.md", rep: "sarah_ldn" }, file: "mcp-analytics.md", kind: "view" },
+        { event: "snippet_copied", props: { card: "mcp-analytics.md", snippet: "cursor_mcp_json" }, file: "mcp-analytics.md", kind: "copy" },
+        { event: "talk_track_copied", props: { card: "warehouse-vs-snowflake.md", rep: "marcus_sf" }, file: "warehouse-vs-snowflake.md", kind: "copy" }
+      ];
+
+      sequence.forEach((step, idx) => {
+        setTimeout(() => {
+          captureTelemetry(step.event, step.props);
+          const row = appState.leaderboard.find((r) => r.file === step.file);
+          if (row) {
+            if (step.kind === "view") row.views += 1;
+            if (step.kind === "copy") row.copies += 1;
+            renderTelemetryTable();
+          }
+        }, idx * 220);
+      });
+
+      showToast("Simulated 3 live AE call telemetry events");
+    }
+
+    // =========================================================================
+    // 7. TAB SWITCHING
+    // =========================================================================
+    function switchTab(tabName) {
+      appState.activeTab = tabName;
+      ["cockpit", "pr", "telemetry"].forEach((name) => {
+        const panel = document.getElementById(`panel-${name}`);
+        const btn = document.getElementById(`tab-btn-${name}`);
+        if (name === tabName) {
+          panel.classList.remove("hidden");
+          btn.classList.remove("tab-inactive");
+          btn.classList.add("tab-active");
+          btn.setAttribute("aria-selected", "true");
+        } else {
+          panel.classList.add("hidden");
+          btn.classList.remove("tab-active");
+          btn.classList.add("tab-inactive");
+          btn.setAttribute("aria-selected", "false");
+        }
+      });
+
+      captureTelemetry("tab_viewed", { tab: tabName });
+    }
+
+    // =========================================================================
+    // 8. TAB 1: LIVE CALL COCKPIT RENDERING & CUSTOM SYNTHESIZER
+    // =========================================================================
+    function renderSidebarList() {
+      const container = document.getElementById("battlecard-sidebar-list");
+      document.getElementById("sidebar-count").textContent = `${appState.battlecards.length} Cards`;
+
+      container.innerHTML = appState.battlecards
+        .map((card) => {
+          const active = card.id === appState.selectedCardId;
+          return `
+            <button
+              onclick="selectBattlecard('${card.id}')"
+              class="w-full text-left p-2.5 rounded-md border-[1.5px] transition cursor-pointer ${
+                active
+                  ? "bg-[#FFF9E6] border-[#151515] shadow-[2px_2px_0px_#151515]"
+                  : "bg-[#F9F9F6] border-transparent hover:border-[#151515]/40"
+              }"
+            >
+              <div class="flex items-center justify-between gap-1 mb-1">
+                <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                  card.isCustom ? "bg-[#1D4AFF] text-white" : "bg-[#151515] text-[#F7A501]"
+                }">
+                  ${escapeHtml(card.objectiveBadge)}
+                </span>
+                <span class="font-mono text-[10px] text-[#6B7280] truncate">${escapeHtml(card.competitorBadge)}</span>
+              </div>
+              <div class="text-xs font-bold text-[#151515] leading-snug line-clamp-2">
+                ${escapeHtml(card.headline)}
+              </div>
+            </button>
+          `;
+        })
+        .join("");
+    }
+
+    function selectBattlecard(cardId) {
+      const card = appState.battlecards.find((c) => c.id === cardId);
+      if (!card) return;
+
+      appState.selectedCardId = card.id;
+      renderSidebarList();
+      renderActiveBattlecard(card);
+
+      // Update leaderboard view count
+      const lbRow = appState.leaderboard.find((r) => card.filepath.endsWith(r.file));
+      if (lbRow) {
+        lbRow.views += 1;
+        renderTelemetryTable();
+      }
+
+      captureTelemetry("battlecard_viewed", {
+        battlecard_id: card.id,
+        objective: card.objectiveBadge,
+        competitor: card.competitorBadge
+      });
+    }
+
+    function renderActiveBattlecard(card) {
+      document.getElementById("bc-objective-badge").textContent = card.objectiveBadge;
+      document.getElementById("bc-competitor-badge").textContent = card.competitorBadge;
+      document.getElementById("bc-filepath-label").textContent = card.filepath;
+      document.getElementById("bc-headline").textContent = card.headline;
+      document.getElementById("bc-reality-check").textContent = card.realityCheck;
+      document.getElementById("bc-honesty-box").textContent = card.honestyBox;
+      document.getElementById("bc-snippet-title").textContent = card.snippetTitle;
+      document.getElementById("bc-snippet-code").textContent = card.snippetCode;
+
+      const qContainer = document.getElementById("bc-discovery-questions");
+      qContainer.innerHTML = card.discoveryQuestions
+        .map(
+          (item, index) => `
+          <div
+            onclick="copyDiscoveryQuestion(${index})"
+            title="Click to copy discovery question"
+            class="group bg-[#F9F9F6] hover:bg-[#FFF9E6] border border-[#151515]/30 hover:border-[#151515] rounded-md p-3 transition cursor-pointer"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="font-semibold text-sm text-[#151515] flex items-start gap-2">
+                <span class="font-mono text-xs font-bold text-[#1D4AFF] mt-0.5">Q${index + 1}.</span>
+                <span>"${escapeHtml(item.q)}"</span>
+              </div>
+              <span class="font-mono text-[10px] text-[#6B7280] group-hover:text-[#151515] shrink-0">Copy</span>
+            </div>
+            <div class="mt-1.5 pl-6 text-xs text-[#4B5563]">
+              <strong class="font-mono text-[#151515]">Listen for:</strong> ${escapeHtml(item.cue)}
+            </div>
+          </div>
+        `
+        )
+        .join("");
+    }
+
+    function applyQuickObjection(text) {
+      const input = document.getElementById("custom-objection-input");
+      input.value = text;
+      synthesizeCustomObjection();
+    }
+
+    function synthesizeCustomObjection() {
+      const input = document.getElementById("custom-objection-input");
+      const rawQuery = input.value.trim();
+      if (!rawQuery) {
+        showToast("Enter a prospect objection or competitor first.");
+        return;
+      }
+
+      const lower = rawQuery.toLowerCase();
+      let matchedRule = null;
+
+      for (const rule of OBJECTION_HEURISTICS) {
+        if (rule.keywords.some((kw) => lower.includes(kw))) {
+          matchedRule = rule;
+          break;
+        }
+      }
+
+      const newId = "custom-" + Date.now();
+      let newCard;
+
+      if (matchedRule) {
+        newCard = {
+          id: newId,
+          isCustom: true,
+          objectiveBadge: matchedRule.objectiveBadge,
+          competitorBadge: `vs. ${matchedRule.competitorName}`,
+          filepath: "contents/handbook/growth/sales/battlecards/custom-synthesized.md",
+          headline: `"${rawQuery.replace(/^["']|["']$/g, "")}"`,
+          realityCheck: matchedRule.realityCheck,
+          honestyBox: matchedRule.honestyBox,
+          discoveryQuestions: matchedRule.discoveryQuestions,
+          snippetTitle: matchedRule.snippetTitle,
+          snippetCode: matchedRule.snippetCode
+        };
+      } else {
+        // General architectural fallback for any custom phrase
+        newCard = {
+          id: newId,
+          isCustom: true,
+          objectiveBadge: "Custom Play • Context Layer",
+          competitorBadge: "vs. Point Tool Stack",
+          filepath: "contents/handbook/growth/sales/battlecards/custom-synthesized.md",
+          headline: `"${rawQuery.replace(/^["']|["']$/g, "")}"`,
+          realityCheck:
+            "Point tools force engineers to glue user IDs together across separate vendor SDKs just to answer basic product questions. PostHog consolidates product analytics, session replay, feature flags, error tracking, and a ClickHouse data warehouse on one shared data model with $0 unlimited seats.",
+          honestyBox:
+            "Do NOT pitch PostHog if the prospect only wants a single isolated infrastructure capability (like raw Kubernetes container log storage) with zero interest in user events, feature flags, or product telemetry.",
+          discoveryQuestions: [
+            {
+              q: "When a production issue spikes, how many separate tools does an engineer open to correlate the stack trace, user replay, and active feature flags?",
+              cue: "Exposes tab-switching tax across fragmented point tools."
+            },
+            {
+              q: "How many engineers or PMs are currently blocked from viewing analytics because of per-seat license limits?",
+              cue: "Highlights PostHog's $0 unlimited seat policy."
+            },
+            {
+              q: "Can your current setup join Stripe revenue tables with frontend product events in a single SQL query without a separate ETL vendor?",
+              cue: "Transitions into PostHog Data Warehouse + HogQL."
+            }
+          ],
+          snippetTitle: "HogQL: Unified Feature Flag + Exception + Conversion Query",
+          snippetCode: `-- Correlate feature flag variants, exceptions, and conversions in one query
+SELECT
+    properties.\`$feature/new-workflow\` AS flag_variant,
+    count(DISTINCT distinct_id) AS users,
+    countIf(event = '$exception') AS frontend_exceptions,
+    countIf(event = 'activated_workspace') AS conversions
+FROM events
+WHERE timestamp >= now() - INTERVAL 7 DAY
+GROUP BY flag_variant
+ORDER BY conversions DESC;`
+        };
+      }
+
+      appState.battlecards.unshift(newCard);
+      selectBattlecard(newCard.id);
+
+      captureTelemetry("custom_objection_synthesized", {
+        matched_competitor: newCard.competitorBadge,
+        query_length: rawQuery.length
+      });
+
+      showToast(`Synthesized battlecard (${newCard.competitorBadge})`);
+    }
+
+    function copyTalkTrack() {
+      const card = appState.battlecards.find((c) => c.id === appState.selectedCardId);
+      if (!card) return;
+      copyToClipboard(card.realityCheck, "30-second reality check copied!");
+      incrementCardCopyMetric(card);
+      captureTelemetry("talk_track_copied", { battlecard_id: card.id });
+    }
+
+    function copyDiscoveryQuestion(index) {
+      const card = appState.battlecards.find((c) => c.id === appState.selectedCardId);
+      if (!card || !card.discoveryQuestions[index]) return;
+      copyToClipboard(card.discoveryQuestions[index].q, `Discovery Question #${index + 1} copied!`);
+      incrementCardCopyMetric(card);
+      captureTelemetry("discovery_question_copied", { battlecard_id: card.id, question_index: index + 1 });
+    }
+
+    function copyProofSnippet() {
+      const card = appState.battlecards.find((c) => c.id === appState.selectedCardId);
+      if (!card) return;
+      copyToClipboard(card.snippetCode, "Technical proof snippet copied!");
+      incrementCardCopyMetric(card);
+      captureTelemetry("snippet_copied", { battlecard_id: card.id, snippet_title: card.snippetTitle });
+    }
+
+    function incrementCardCopyMetric(card) {
+      const lbRow = appState.leaderboard.find((r) => card.filepath.endsWith(r.file));
+      if (lbRow) {
+        lbRow.copies += 1;
+        renderTelemetryTable();
+      }
+    }
+
+    // =========================================================================
+    // 9. TAB 2: GONG / SLACK -> HANDBOOK PR GENERATOR
+    // =========================================================================
+    function selectPrPreset(index) {
+      const preset = PR_PRESETS[index];
+      if (!preset) return;
+
+      appState.currentPr = preset;
+      document.getElementById("pr-raw-input").value = preset.rawInput;
+
+      [0, 1, 2].forEach((i) => {
+        const btn = document.getElementById(`preset-btn-${i}`);
+        if (i === index) {
+          btn.classList.remove("bg-[#F3F4EF]");
+          btn.classList.add("bg-[#FFF9E6]", "font-bold");
+        } else {
+          btn.classList.remove("bg-[#FFF9E6]", "font-bold");
+          btn.classList.add("bg-[#F3F4EF]");
+        }
+      });
+
+      renderPrView(preset);
+      captureTelemetry("pr_preset_selected", { preset_index: index, target_file: preset.targetFile });
+    }
+
+    function extractSignalAndGenerateDiff() {
+      const rawText = document.getElementById("pr-raw-input").value.trim();
+      if (!rawText) {
+        showToast("Paste a Gong snippet or Slack thread first.");
+        return;
+      }
+
+      // If input matches a preset verbatim, render it directly
+      const exactPreset = PR_PRESETS.find((p) => p.rawInput.trim() === rawText);
+      if (exactPreset) {
+        appState.currentPr = exactPreset;
+        renderPrView(exactPreset);
+        captureTelemetry("handbook_pr_generated", { mode: "preset", target_file: exactPreset.targetFile });
+        showToast("Extracted signal & generated Handbook Markdown diff!");
+        return;
+      }
+
+      // Deterministic client-side text extraction for custom pasted notes
+      const lower = rawText.toLowerCase();
+
+      let persona = "Technical Buyer • Engineering / Product Lead";
+      if (lower.includes("vp eng") || lower.includes("vp of eng")) persona = "VP Engineering • Growth-Stage SaaS";
+      else if (lower.includes("cto")) persona = "CTO • Technical Decision Maker";
+      else if (lower.includes("security") || lower.includes("ciso") || lower.includes("gdpr")) persona = "Security / Compliance Lead";
+      else if (lower.includes("founding eng") || lower.includes("staff eng")) persona = "Founding / Staff Engineer";
+
+      const detectedCompetitors = [];
+      [
+        ["snowflake", "Snowflake"],
+        ["dbt", "dbt"],
+        ["fivetran", "Fivetran"],
+        ["bigquery", "BigQuery"],
+        ["amplitude", "Amplitude"],
+        ["mixpanel", "Mixpanel"],
+        ["datadog", "Datadog RUM"],
+        ["fullstory", "FullStory"],
+        ["sentry", "Sentry"],
+        ["langsmith", "LangSmith"],
+        ["cursor", "Cursor"],
+        ["postgres", "Postgres"],
+        ["self-host", "Self-Hosted FOSS"]
+      ].forEach(([key, label]) => {
+        if (lower.includes(key)) detectedCompetitors.push(label);
+      });
+
+      const competitorLabel = detectedCompetitors.length > 0 ? detectedCompetitors.join(", ") : "Point Tool Stack";
+
+      let targetFile = "contents/handbook/growth/sales/battlecards/field-objections.md";
+      if (lower.includes("snowflake") || lower.includes("warehouse") || lower.includes("bigquery") || lower.includes("dbt")) {
+        targetFile = "contents/handbook/growth/sales/battlecards/warehouse-vs-snowflake.md";
+      } else if (lower.includes("mcp") || lower.includes("cursor") || lower.includes("claude")) {
+        targetFile = "contents/handbook/growth/sales/battlecards/mcp-analytics.md";
+      } else if (lower.includes("gdpr") || lower.includes("eu") || lower.includes("self-host")) {
+        targetFile = "contents/handbook/growth/sales/battlecards/eu-cloud-vs-self-host.md";
+      } else if (lower.includes("langsmith") || lower.includes("llm") || lower.includes("agent")) {
+        targetFile = "contents/handbook/growth/sales/battlecards/ai-observability.md";
+      } else if (lower.includes("price") || lower.includes("pricing") || lower.includes("expensive") || lower.includes("50m")) {
+        targetFile = "contents/handbook/growth/sales/battlecards/pricing-predictability.md";
+      }
+
+      // Extract quoted pain or clean summary line
+      const quoteMatch = rawText.match(/"([^"]{20,220})"/);
+      const cleanSummary = quoteMatch
+        ? quoteMatch[1]
+        : rawText.replace(/\s+/g, " ").slice(0, 175) + (rawText.length > 175 ? "..." : "");
+
+      const today = new Date().toISOString().slice(0, 10);
+      const generatedPr = {
+        persona,
+        competitor: competitorLabel,
+        friction: cleanSummary,
+        targetFile,
+        prTitle: `docs(sales): update ${targetFile.split("/").pop()} from field call signal`,
+        mergeSummary: `Adds field-validated objection counter (${competitorLabel}) to ${targetFile}.`,
+        rawInput: rawText,
+        diffLines: [
+          { type: "meta", num: "@@", text: "@@ -16,5 +16,13 @@" },
+          { type: "ctx", num: "16", text: "## Field Objections & Counter-Positioning" },
+          { type: "del", num: "17", text: "- Legacy competitive positioning note pending field validation." },
+          { type: "add", num: "17", text: `+ ### Field Signal (${today}) — ${competitorLabel}` },
+          { type: "add", num: "18", text: `+ - **Buyer Friction:** "${cleanSummary.slice(0, 110)}${cleanSummary.length > 110 ? "..." : ""}"` },
+          { type: "add", num: "19", text: "+ - **AE Talk Track:** Lead with PostHog's unified ClickHouse context layer, $0 unlimited seats, and direct HogQL/MCP proof." },
+          { type: "add", num: "20", text: "+ - **Honesty Box:** Disqualify early if the prospect only needs isolated non-product infrastructure logging." }
+        ]
+      };
+
+      appState.currentPr = generatedPr;
+      renderPrView(generatedPr);
+      captureTelemetry("handbook_pr_generated", { mode: "custom_parse", target_file: targetFile });
+      showToast("Extracted signal & generated Handbook Markdown diff!");
+    }
+
+    function renderPrView(prData) {
+      document.getElementById("pr-competitor-pill").textContent = prData.competitor;
+      document.getElementById("pr-persona-output").textContent = prData.persona;
+      document.getElementById("pr-friction-output").textContent = prData.friction;
+      document.getElementById("pr-competitor-output").textContent = prData.competitor;
+      document.getElementById("pr-target-file-output").textContent = prData.targetFile;
+      document.getElementById("pr-diff-header-path").textContent = prData.targetFile;
+
+      document.getElementById("modal-pr-headline").textContent = prData.prTitle;
+      document.getElementById("modal-merge-summary").textContent = prData.mergeSummary;
+
+      const container = document.getElementById("pr-diff-lines-container");
+      container.innerHTML = prData.diffLines
+        .map((line) => {
+          if (line.type === "meta") {
+            return `<div class="text-[#60A5FA] bg-[#1E293B] px-2 py-0.5 rounded">${escapeHtml(line.text)}</div>`;
+          }
+          if (line.type === "add") {
+            return `
+              <div class="flex bg-[#10B981]/15 text-[#6EE7B7] px-2 py-0.5 rounded-sm">
+                <span class="w-8 select-none text-[#10B981]/70 shrink-0">${line.num}</span>
+                <span class="whitespace-pre-wrap">${escapeHtml(line.text)}</span>
+              </div>`;
+          }
+          if (line.type === "del") {
+            return `
+              <div class="flex bg-[#EF4444]/15 text-[#FCA5A5] px-2 py-0.5 rounded-sm">
+                <span class="w-8 select-none text-[#EF4444]/70 shrink-0">${line.num}</span>
+                <span class="whitespace-pre-wrap">${escapeHtml(line.text)}</span>
+              </div>`;
+          }
+          return `
+            <div class="flex text-gray-300 px-2 py-0.5">
+              <span class="w-8 select-none text-gray-500 shrink-0">${line.num}</span>
+              <span class="whitespace-pre-wrap">${escapeHtml(line.text)}</span>
+            </div>`;
+        })
+        .join("");
+    }
+
+    function copyMarkdownDiff() {
+      const diffBody = appState.currentPr.diffLines.map((l) => l.text).join("\n");
+      const formattedMarkdown = "```diff\n" + diffBody + "\n```";
+      copyToClipboard(formattedMarkdown, "Markdown Git diff copied to clipboard!");
+      captureTelemetry("git_diff_copied", { target_file: appState.currentPr.targetFile });
+    }
+
+    function openPrPreviewModal() {
+      document.getElementById("pr-preview-modal").classList.remove("hidden");
+      captureTelemetry("github_pr_previewed", { pr_title: appState.currentPr.prTitle });
+    }
+
+    function closePrPreviewModal() {
+      document.getElementById("pr-preview-modal").classList.add("hidden");
+    }
+
+    function mergePullRequest() {
+      closePrPreviewModal();
+      captureTelemetry("github_pr_merged", {
+        repo: "PostHog/posthog.com",
+        target_file: appState.currentPr.targetFile
+      });
+      showToast("PR #14908 merged into PostHog/posthog.com!");
+    }
+
+    // =========================================================================
+    // 10. SHARED UTILITIES (CLIPBOARD, TOAST, ESCAPING)
+    // =========================================================================
+    function copyToClipboard(text, message) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast(message);
+      } catch (err) {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text).then(() => showToast(message));
+        }
+      }
+      document.body.removeChild(textarea);
+    }
+
+    let toastTimeout = null;
+    function showToast(message) {
+      const banner = document.getElementById("toast-notification");
+      const label = document.getElementById("toast-notification-text");
+      label.textContent = message;
+      banner.classList.remove("hidden");
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        banner.classList.add("hidden");
+      }, 2600);
+    }
+
+    function escapeHtml(str) {
+      if (typeof str !== "string") return "";
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // =========================================================================
+    // 11. BOOTSTRAP ON DOM READY
+    // =========================================================================
+    window.addEventListener("DOMContentLoaded", () => {
+      renderSidebarList();
+      renderActiveBattlecard(appState.battlecards[0]);
+      selectPrPreset(0);
+      renderTelemetryTable();
+
+      appState.events = [];
+      captureTelemetry("copilot_initialized", {
+        q4_battlecards_loaded: appState.battlecards.length,
+        default_card: appState.battlecards[0].id
+      });
+    });
+  </script>
+</body>
+</html>
